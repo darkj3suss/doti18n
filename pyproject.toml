@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "doti18n"
+version = "0.1.0"
+description = "Python library for loading YAML localizations with dot access and pluralization."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    {name = "darkj3suss", email = "asdzxco@protonmail.com"}
+]
+keywords = ["localization", "i18n", "l10n", "translate", "yaml", "dot access", "pluralization", "babel"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Localization",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+    "PyYAML>=6.0"
+]
+
+[project.optional-dependencies]
+pluralization = [
+    "babel>=2.17"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[project.urls]
+Homepage = "https://github.com/darkj3suss/doti18n"
+BugTracker = "https://github.com/darkj3suss/doti18n/issues"
+Repository = "https://github.com/darkj3suss/doti18n"
+
