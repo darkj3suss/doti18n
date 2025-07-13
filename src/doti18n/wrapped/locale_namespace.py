@@ -108,6 +108,17 @@ class LocaleNamespace:
         return reversed(list(self.__iter__()))
 
     def get(self, name: str, default: Any = None) -> Any:
+        """
+        Retrieve the value of an attribute by name. If the attribute does not exist
+        or evaluates to a falsy value, the specified default value will be returned.
+
+        :param name: The name of the attribute to retrieve.
+        :type name: str
+        :param default: The value returned if the attribute does not exist or is falsy.
+        :type default: Any
+        :return: The value of the specified attribute or the default value.
+        :rtype: Any
+        """
         data = self.__getattr__(name)
         return data if data else default
 

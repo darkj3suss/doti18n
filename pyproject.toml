@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "doti18n"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python library for loading YAML localizations with dot access and pluralization."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -12,7 +12,7 @@ license = "MIT"
 authors = [
     {name = "darkj3suss", email = "asdzxco@protonmail.com"}
 ]
-keywords = ["localization", "i18n", "l10n", "translate", "yaml", "dot access", "pluralization", "babel"]
+keywords = ["localization", "i18n", "l10n", "translate", "yaml", "json", "yml", "text processing", "dot access", "pluralization", "babel"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",

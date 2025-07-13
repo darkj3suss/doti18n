@@ -1,3 +1,4 @@
+import os
 from typing import (
     Any,
     List,
@@ -8,6 +9,7 @@ from typing import (
 
 
 _NOT_FOUND = object()
+_EMPTY_FILE = object()
 
 
 def _is_plural_dict(data: Any) -> bool:
@@ -18,11 +20,6 @@ def _is_plural_dict(data: Any) -> bool:
     if it's a dictionary and contains at least one key from the CLDR plural
     categories ('zero', 'one', 'two', 'few', 'many', 'other') with a
     string value.
-
-    :param data: The data object to check.
-    :type data: Any
-    :return: `True` if the object looks like a plural dictionary, `False` otherwise.
-    :rtype: bool
     """
 
     if not isinstance(data, dict):
@@ -42,7 +39,6 @@ def _get_value_by_path_single(path: List[Union[str, int]], data: Optional[Dict[s
     or traversal fails. A simple `None` return cannot distinguish these.
     Let's use a sentinel value or raise a specific internal exception.
     Using a sentinel is cleaner as this is an internal helper.
-
     """
 
     if data is None or not isinstance(data, dict):
@@ -86,8 +82,25 @@ def _get_value_by_path_single(path: List[Union[str, int]], data: Optional[Dict[s
     return data
 
 
+def _get_locale_code(filename: str) -> str:
+    locale_code_raw = os.path.splitext(filename)[0]
+    locale_code_normalized = locale_code_raw.lower()
+    return locale_code_normalized
+
+
+def _deep_merge(source, destination):
+    for key, value in source.items():
+        if isinstance(value, dict) and key in destination and isinstance(destination[key], dict):
+            _deep_merge(value, destination[key])
+        else:
+            destination[key] = value
+
+
 __all__ = [
+    "_NOT_FOUND",
+    "_EMPTY_FILE",
     "_get_value_by_path_single",
     "_is_plural_dict",
-    "_NOT_FOUND"
+    "_get_locale_code",
+    "_deep_merge"
 ]

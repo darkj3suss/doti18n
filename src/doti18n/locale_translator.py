@@ -50,7 +50,7 @@ class LocaleTranslator:
         """
         Initializes a LocaleTranslator.
 
-        :param locale_code: The code of the locale this translator handles (e.g., 'en', 'fr').
+        :param locale_code: The code of the locale this translator handles (e.g., 'en.yml', 'fr').
         :type locale_code: str
         :param current_locale_data: The raw localization data (as a dictionary) for the current locale.
                                     Can be None if the locale file was not found or invalid.
@@ -64,8 +64,8 @@ class LocaleTranslator:
                        If False (default), it returns None and logs a warning.
         :type strict: bool
         """
+
         self.locale_code = locale_code
-        # Ensure data is treated as a dictionary, default to empty if None or not dict
         self._current_locale_data = current_locale_data if isinstance(current_locale_data, dict) else {}
         self._default_locale_data = default_locale_data if isinstance(default_locale_data, dict) else {}
         self._default_locale_code = default_locale_code
@@ -111,8 +111,6 @@ class LocaleTranslator:
                  Returns 'other' as a fallback in case of errors.
         :rtype: str
         """
-        # Use the locale code where the plural dictionary was originally found
-        # (or the translator's current locale code)
         target_locale_code = locale_code if locale_code else self.locale_code
         try:
             # Babel's Locale expects underscores for territory (e.g., en_US)
@@ -291,7 +289,6 @@ class LocaleTranslator:
 
         value, found_locale_code = self._get_value_by_path(path)
 
-        # Check if the path was *not* found at all using the sentinel
         if value is _NOT_FOUND:
             full_key_path = '.'.join(map(str, path))
             if self._strict:
@@ -309,7 +306,6 @@ class LocaleTranslator:
                         f"in translations (including default '{self._default_locale_code}')."
                     )
             else:
-                # Log warning for a path not found
                 logger.warning(
                     f"Locale '{self.locale_code}': key/index path '{full_key_path}' not found "
                     f"in translations (including default '{self._default_locale_code}'). None will be returned."
@@ -321,7 +317,7 @@ class LocaleTranslator:
 
     def __getattr__(self, name: str) -> Any:
         """
-        Handles attribute access for the top level (e.g., `data['en'].messages`).
+        Handles attribute access for the top level (e.g., `data['en.yml'].messages`).
 
         Delegates the resolution to `_resolve_value_by_path` unless the attribute
         exists in the object's attributes.
@@ -332,14 +328,6 @@ class LocaleTranslator:
                  LocaleList, plural handler, or None.
         :rtype: Any
         """
-        # Note: This checks `if name in dir(self):` can sometimes interfere
-        # with introspection or might not be strictly necessary depending
-        # on how _resolve_value_by_path is structured. The current implementation
-        # of _resolve_value_by_path doesn't check `self`'s own attributes;
-        # it goes straight to the data.
-        # However, the `shape` crutch in _resolve_value_by_path implies __getattr__
-        # *does* lead to _resolve_value_by_path for 'shape'. This area might
-        # need more robust handling if other attribute names cause issues.
         if name in dir(self):
             return object.__getattribute__(self, name)
 

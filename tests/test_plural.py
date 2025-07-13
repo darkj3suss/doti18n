@@ -63,8 +63,7 @@ class TestPluralForms(BaseLocaleTest):
         self.assertEqual(locales['en'].items(1, item_name='book'), 'You have 1 book.')
         self.assertEqual(locales['en'].items(5, item_name='book'), 'You have 5 books.')
         self.assertEqual(locales['en'].items(1, item_name='mouse'), 'You have 1 mouse.')
-        self.assertEqual(locales['en'].items(5, item_name='mouse'),
-                         'You have 5 mouses.')
+        self.assertEqual(locales['en'].items(5, item_name='mouse'), 'You have 5 mouses.')
 
     def test_nested_plural(self):
         self.create_locale_file('en', {

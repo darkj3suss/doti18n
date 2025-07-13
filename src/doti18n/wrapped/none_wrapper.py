@@ -7,9 +7,11 @@ class NoneWrapper:
     def __new__(cls, locale_code: str, path: str):
         """
         Some advanced Singleton
+
         :param path: Path to the unresolved localization.
         :type path: str
         """
+
         if path not in cls._instances:
             cls._instances[path] = super().__new__(cls)
         return cls._instances[path]

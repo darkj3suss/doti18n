@@ -3,12 +3,18 @@ from typing import (
     Dict,
     Optional,
     Any,
-    List
+    List,
+    Union,
+    Tuple
 )
 
-import yaml
 from .locale_translator import LocaleTranslator
 import logging
+from .loaders import Loader
+from .utils import (
+    _EMPTY_FILE,
+    _get_locale_code, _deep_merge
+)
 
 
 logger = logging.getLogger(__name__)
@@ -21,60 +27,60 @@ class LocaleData:
     Supports a 'strict' mode which is passed to created LocaleTranslator instances.
     """
 
-    def __init__(self, locales_dir: str, default_locale: str = 'en', strict: bool = False):
+    def __init__(
+            self,
+            locales_dir: str,
+            default_locale: str = 'en',
+            strict: bool = False,
+            strict_file_load: bool = False,
+            preload: bool = True
+    ):
         """
         Initializes the LocaleData manager.
-
-        Loads all YAML localization files from the specified directory.
-
         :param locales_dir: The path to the directory containing YAML locale files.
         :type locales_dir: str
-        :param default_locale: The code of the default locale. Defaults to 'en'.
+        :param default_locale: The code of the default locale. (default: 'en')
         :type default_locale: str
         :param strict: If `True`, all created LocaleTranslator instances will be in strict mode.
-                       If `False` (default), they will be in non-strict mode.
+                       That means that where you've gotten warnings before, you'll get exceptions.
+                       (default: False).
         :type strict: bool
+        :param strict_file_load: If `True`, Loader will not try to guess the file type
+                                 if the file has an unspecified extension.
+                                 (default: False).
+        :type strict_file_load: bool
+        :param preload: If `True`, load all translations at initialization.
+                        Not recommended to use with large locale directories.
+                        Instead, you can use LocaleData.get("filename") to load individual locale.
+                        (default: True)
+        :type preload: bool
         """
 
-        self.logger = logger
         self.locales_dir = locales_dir
         self.default_locale = default_locale.lower()
+        self._logger = logger
+        self._loader = Loader(strict_file_load)
         self._strict = strict
-        # Dictionary to store raw loaded data: normalized_locale_code -> data (or None)
         self._raw_translations: Dict[str, Optional[Dict[str, Any]]] = {}
-        # Cache for LocaleTranslator instances: normalized_locale_code -> LocaleTranslator
         self._locale_translators_cache: Dict[str, LocaleTranslator] = {}
-        self._load_all_translations()
+        if preload:
+            self._load_all_translations()
 
     def _load_all_translations(self):
-        """Loads all YAML localization files from the directory."""
         if not os.path.exists(self.locales_dir):
-            self.logger.error(f"Localization directory '{self.locales_dir}' not found.")
-            return
+            msg = f"Localization directory '{self.locales_dir}' not found."
+            if self._strict:
+                raise FileNotFoundError(msg)
+            else:
+                self._logger.error(msg)
+                return
 
-        loaded_any = False
         for filename in os.listdir(self.locales_dir):
-            if filename.lower().endswith((".yaml", ".yml")):
-                locale_code_raw = os.path.splitext(filename)[0]
-                locale_code_normalized = locale_code_raw.lower()
-                filepath = os.path.join(self.locales_dir, filename)
-                try:
-                    with open(filepath, encoding='utf-8') as f:
-                        data = yaml.safe_load(f)
-                        # Store the loaded data under the normalized locale code.
-                        # If the loaded data is not a dictionary at the root, store None.
-                        self._raw_translations[locale_code_normalized] = data if isinstance(data, dict) else None
-                        loaded_any = True
-                    self.logger.info(f"Loaded locale data for: '{locale_code_normalized}' from '{filename}'")
-                except FileNotFoundError:
-                    self.logger.error(f"Locale file '{filepath}' not found during load.")
-                except yaml.YAMLError as e:
-                    self.logger.error(f"Error parsing YAML file '{filepath}': {e}")
-                except Exception as e:
-                    self.logger.error(f"Unknown error loading '{filepath}': {e}", exc_info=True)
+            data = self._loader.load(os.path.join(self.locales_dir, filename))
+            self._process_data(data)
 
-        if not loaded_any:
-            self.logger.warning(f"No localization files found or successfully loaded from '{self.locales_dir}'.")
+        if not any(self._raw_translations.values()):
+            self._logger.warning(f"No localization files found or successfully loaded from '{self.locales_dir}'.")
 
         default_data = self._raw_translations.get(self.default_locale)
         if not isinstance(default_data, dict):
@@ -83,11 +89,22 @@ class LocaleData:
             elif not isinstance(default_data, dict):
                 self._raw_translations[self.default_locale] = None  # None if not a dict
 
-            self.logger.critical(
-                f"Default locale file for '{self.default_locale}.yaml/.yml' not found or root is not a dictionary "
+            self._logger.warning(
+                f"Default locale was not found or root is not a dictionary "
                 f"({type(default_data).__name__ if default_data is not None else 'NoneType'}). "
                 "Fallback to the default locale will be limited or impossible."
             )
+
+    def _process_data(self, data: Union[Tuple, Dict, List]):
+        if isinstance(data, dict):
+            _deep_merge(data, self._raw_translations)
+
+        elif isinstance(data, list):
+            for locale_code, data in data:
+                if locale_code in self._raw_translations:
+                    _deep_merge(data, self._raw_translations[locale_code])
+                else:
+                    self._raw_translations[locale_code] = data
 
     def __getitem__(self, locale_code: str) -> LocaleTranslator:
         """
@@ -169,3 +186,69 @@ class LocaleData:
             return self[normalized_locale_code]
         else:
             return default
+
+    def load_translation(self, filename: str) -> Optional[LocaleTranslator]:
+        """
+        Loads a translation from the specified locale file and returns a LocaleTranslator instance
+        if the translation is successfully processed. This method checks if the translation is
+        already cached, loads data from the file, processes the translation, and handles warnings
+        related to defaults in locale data.
+
+        The method raises errors if the locale file is empty, the data cannot be loaded, or the
+        format of the locale file is invalid (e.g., contains multiple locales).
+
+        :param filename: The name of the locale file to be loaded.
+        :type filename: str
+
+        :return: A LocaleTranslator instance for the given locale, or None if not available.
+        :rtype: Optional[LocaleTranslator]
+
+        :raises ValueError: If the locale file is empty, data cannot be loaded, or the format
+            contains multiple locales.
+        """
+
+        locale_code = _get_locale_code(filename)
+        if locale_code in self._locale_translators_cache:
+            return self._locale_translators_cache[locale_code]
+
+        filepath = os.path.join(self.locales_dir, filename)
+        data = self._loader.load(filepath)
+
+        if data is _EMPTY_FILE:
+            if self._strict:
+                raise ValueError(f"Locale file '{filename}' was epmty.")
+            else:
+                self._logger.warning(f"Locale file '{filename}' was epmty.")
+        
+        if not data:
+            if self._strict:
+                raise ValueError(f"Data from locale file '{filename}' not loaded")
+            else:
+                self._logger.warning(f"Data from locale file '{filename}' not loaded")
+
+        if isinstance(data, list):
+            raise ValueError(
+                f"Locale file '{filename}' contains multiple locales.\n"
+                f"It's not possible to use it for LocaleTranslator.\n"
+                f"Instead of this, use preload=True in LocaleData, and use .get() method"
+            )
+
+        if data:
+            self._process_data(data)
+
+        default_data = self._raw_translations.get(self.default_locale)
+        if not default_data:
+            self._logger.warning(
+                f"Default locale was not found or root is not a dictionary "
+                f"({type(default_data).__name__ if default_data is not None else 'NoneType'}). "
+                "Fallback to the default locale will be limited or impossible."
+            )
+
+        return LocaleTranslator(
+            locale_code,
+            self._raw_translations.get(locale_code),
+            self._raw_translations.get(self.default_locale),
+            self.default_locale,
+            strict=self._strict
+        )
+
