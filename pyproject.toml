@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "doti18n"
 version = "0.3.1"
 description = "Python library for loading YAML localizations with dot access and pluralization."
-readme = "README.md"
+long_description = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.8"
 license = "MIT"
 authors = [
