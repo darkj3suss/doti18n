@@ -14,15 +14,14 @@ It's designed for ease of use and performance (data is loaded once during initia
 
 ## Features
 
-*   Loading localization data from YAML files.
+*   Loading localization data from YAML, JSON, XML files.
 *   Intuitive access to nested data structures (dictionaries and lists) using **dot notation (`.`) for dictionary keys and index notation (`[]`) for list elements**.
 *   Support for **combined access paths** (`data.list[0].nested_key`).
-*   **Strict mode** (`strict=True`) to raise exceptions (`AttributeError`, `IndexError`, `TypeError`) on missing paths or incorrect usage.
-*   **Non-strict mode** (default) to return a special `NoneWrapper` object and log a warning on missing paths.
+*   **Strict mode** (`strict=True`) to raise exceptions on missing paths or incorrect usage.
+*   **Non-strict mode** (default) to return a special `NoneWrapper` object and log a warning on missing paths or incorrect usage.
 *   Pluralization support for count-dependent strings (requires `Babel`).
 *   Automatic fallback to the default locale if a key/path is missing in the current locale.
 *   Caching of loaded data and translator objects for efficient access.
-*   Handles explicit `null` values in YAML, distinguishing them from missing paths.
 
 ## Installation
 
