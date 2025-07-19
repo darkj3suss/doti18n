@@ -1,16 +1,18 @@
-from typing import (
-    Dict,
-    Optional,
-    Any,
-    List,
-    Tuple,
-    Union,
-    Callable
-)
-from .wrapped import *
-from .utils import *
 import logging
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
+from .utils import (
+    _NOT_FOUND,
+    _get_value_by_path_single,
+    _is_plural_dict,
+)
+from .wrapped import (
+    LocaleList,
+    LocaleNamespace,
+    NoneWrapper,
+    PluralWrapper,
+    StringWrapper,
+)
 
 logger = logging.getLogger(__name__)
 try:
@@ -18,37 +20,44 @@ try:
 except ImportError:
     logger.warning("Babel is not installed. Library working can be unstable (especially plural forms).")
 
-    class Locale:
-        """Stub Locale class"""
-        def __init__(self, *args, **kwargs):
-            # Note: The stub plural_form implementation is very basic.
-            # A more robust dummy might be needed depending on usage,
-            # but 'other' is the most common fallback.
-            pass
+    if not TYPE_CHECKING:
 
-        def plural_form(self, *args, **kwargs):
-            # Always return 'other' as a fallback without Babel
-            return "other"
+        class Locale:
+            """Stub Locale class."""
+
+            def __init__(self, *args, **kwargs):
+                """
+                Initialize the stub Locale class.
+
+                The stub plural_form implementation is very basic.
+                A more robust dummy might be needed depending on usage,
+                but 'other' is the most common fallback.
+                """
+                pass
+
+            def plural_form(self, *args, **kwargs):
+                """Stub plural_form function."""
+                # Always return 'other' as a fallback without Babel
+                return "other"
 
 
 class LocaleTranslator:
     """
-    Represents a set of localizations for a specific locale and provides methods
-    to access them and handle plural forms.
+    Translator for localization data for a specific locale.
 
     Supports a 'strict' mode where missing keys raise exceptions.
     """
 
     def __init__(
-            self,
-            locale_code: str,
-            current_locale_data: Optional[Dict[str, Any]],
-            default_locale_data: Optional[Dict[str, Any]],
-            default_locale_code: str,
-            strict: bool = False
+        self,
+        locale_code: str,
+        current_locale_data: Optional[Dict[str, Any]],
+        default_locale_data: Optional[Dict[str, Any]],
+        default_locale_code: str,
+        strict: bool = False,
     ):
         """
-        Initializes a LocaleTranslator.
+        Initialize a LocaleTranslator.
 
         :param locale_code: The code of the locale this translator handles (e.g., 'en.yml', 'fr').
         :type locale_code: str
@@ -64,8 +73,8 @@ class LocaleTranslator:
                        If False (default), it returns None and logs a warning.
         :type strict: bool
         """
-
         self.locale_code = locale_code
+        self._logger = logger
         self._current_locale_data = current_locale_data if isinstance(current_locale_data, dict) else {}
         self._default_locale_data = default_locale_data if isinstance(default_locale_data, dict) else {}
         self._default_locale_code = default_locale_code
@@ -73,10 +82,10 @@ class LocaleTranslator:
 
     def _get_value_by_path(self, path: List[Union[str, int]]) -> Tuple[Any, Optional[str]]:
         """
-        Retrieves the value at the given path, checking the current locale first,
-        then the default locale.
+        Retrieve the value at the given path.
 
-        Returns the value found and the locale code where it was found.
+        First, checking the current locale first, then the default locale.
+        Return the value found and the locale code where it was found.
         Uses _NOT_FOUND sentinel if the path does not exist in either locale.
 
         :param path: The list of keys/indices representing as a path (e.g., ['messages', 'hi'] or ['page', 0, 'title']).
@@ -85,13 +94,17 @@ class LocaleTranslator:
                  where the value was found. Returns (None, None) if not found.
         :rtype: Tuple[Any, Optional[str]]
         """
-
         value_from_current = _get_value_by_path_single(path, self._current_locale_data)
         if value_from_current is not _NOT_FOUND:  # Check against sentinel
             return value_from_current, self.locale_code
 
         value_from_default = _get_value_by_path_single(path, self._default_locale_data)
         if value_from_default is not _NOT_FOUND:  # Check against sentinel
+            self._logger.warning(
+                f"Fallback for key '{'.'.join(list(map(str, path)))}' "
+                f"from '{self.locale_code}' "
+                f"to '{self._default_locale_code}'"
+            )
             return value_from_default, self._default_locale_code
 
         # If sentinel returned from both, the path was not found
@@ -99,8 +112,7 @@ class LocaleTranslator:
 
     def _get_plural_form_key(self, count: int, locale_code: Optional[str]) -> str:
         """
-        Determines the plural form key based on a number and locale code,
-        using CLDR rules via the babel library.
+        Determine the plural form key based on a number and locale code.
 
         :param count: The number for which to determine the plural form.
         :type count: int
@@ -114,27 +126,28 @@ class LocaleTranslator:
         target_locale_code = locale_code if locale_code else self.locale_code
         try:
             # Babel's Locale expects underscores for territory (e.g., en_US)
-            locale_obj = Locale(target_locale_code.replace('-', '_'))
+            locale_obj = Locale(target_locale_code.replace("-", "_"))
             plural_rule_func = locale_obj.plural_form
             return plural_rule_func(abs(count))
         except Exception as e:
-            logger.warning(
+            self._logger.warning(
                 f"Babel failed to get plural rule function or category for count {abs(count)} "
                 f"and locale '{target_locale_code}': {e}. Falling back to 'other'.",
-                exc_info=True
+                exc_info=True,
             )
-            return 'other'
+            return "other"
 
     def _get_plural_template(
-            self,
-            path: List[str],
-            count: int,
-            current_plural_dict: Dict[str, Any],
-            current_plural_locale_code: Optional[str]
+        self,
+        path: List[Union[str, int]],
+        count: int,
+        current_plural_dict: Dict[str, Any],
+        current_plural_locale_code: Optional[str],
     ) -> Optional[str]:
         """
-        Retrieves the plural template string based on the count and locale rules.
-        Searches first in the provided plural dictionary, then in the default locale's
+        Retrieve the plural template string based on the count and locale rules.
+
+        Searche first in the provided plural dictionary, then in the default locale's
         corresponding plural dictionary. Returns the template string or None.
 
         :param path: The full path to the plural dictionary.
@@ -151,33 +164,27 @@ class LocaleTranslator:
                  or None if no suitable template is found in either locale.
         :rtype: Optional[str]
         """
-
         form_key = self._get_plural_form_key(count, current_plural_locale_code)
         template = current_plural_dict.get(form_key)
         if template is None:
-            template = current_plural_dict.get('other')
+            template = current_plural_dict.get("other")
 
         if template is None:
             default_plural_dict = _get_value_by_path_single(path, self._default_locale_data)
             if (
-                    default_plural_dict is not None
-                    and isinstance(default_plural_dict, dict)
-                    and _is_plural_dict(default_plural_dict)
+                default_plural_dict is not None
+                and isinstance(default_plural_dict, dict)
+                and _is_plural_dict(default_plural_dict)
             ):
                 template = default_plural_dict.get(form_key)
                 if template is None:
-                    template = default_plural_dict.get('other')
+                    template = default_plural_dict.get("other")
 
         return template if isinstance(template, str) else None
 
-    def _handle_resolved_value(
-            self,
-            value: Any,
-            path: List[Union[str, int]],
-            found_locale_code: Optional[str]
-    ) -> Any:
+    def _handle_resolved_value(self, value: Any, path: List[Union[str, int]], found_locale_code: Optional[str]) -> Any:
         """
-        Helper method to process the value obtained from _get_value_by_path.
+        Process the value obtained from _get_value_by_path.
 
         Assumes the value is NOT the _NOT_FOUND sentinel.
         Logs a warning if an explicit None value is found.
@@ -193,16 +200,15 @@ class LocaleTranslator:
         :raises ValueError: If formatting a plural string fails.
         :raises AttributeError: If a template for a plural form is not a string.
         """
-
         if isinstance(value, str):
             return StringWrapper(value)
         elif isinstance(value, dict):
             if _is_plural_dict(value):
-                full_path = '.'.join(map(str, path))
+                full_path = ".".join(map(str, path))
                 return PluralWrapper(
                     func=self._create_plural_handler(path, value, found_locale_code),
                     path=full_path,
-                    strict=self._strict
+                    strict=self._strict,
                 )
             else:
                 return LocaleNamespace(path, self)
@@ -213,17 +219,15 @@ class LocaleTranslator:
             return value
 
     def _create_plural_handler(
-            self,
-            path: List[Union[str, int]],
-            plural_dict: Dict[str, Any],
-            found_locale_code: Optional[str]
+        self, path: List[Union[str, int]], plural_dict: Dict[str, Any], found_locale_code: Optional[str]
     ) -> Callable:
-        """Helper to create the callable plural handler."""
+        """Create the callable plural handler."""
 
         def plural_handler(count: int, **kwargs) -> str:
             """
-            Handler function returned for plural localization keys.
-            Formats the appropriate plural template based on the count.
+            Return handler for plural localization keys.
+
+            Format the appropriate plural template based on the count.
             """
             if not isinstance(count, int):
                 raise TypeError(
@@ -231,14 +235,9 @@ class LocaleTranslator:
                     f"requires an integer count, not {type(count).__name__}"
                 )
 
-            template = self._get_plural_template(
-                path,
-                count,
-                plural_dict,
-                found_locale_code
-            )
+            template = self._get_plural_template(path, count, plural_dict, found_locale_code)
 
-            full_key_path_str = '.'.join(map(str, path))
+            full_key_path_str = ".".join(map(str, path))
             if template is None:
                 form_key = self._get_plural_form_key(count, found_locale_code)
                 raise AttributeError(
@@ -247,7 +246,7 @@ class LocaleTranslator:
                     f"or default '{self._default_locale_code}'."
                 )
 
-            format_args = {'count': abs(count)}
+            format_args = {"count": count}
             format_args.update(kwargs)
             try:
                 return template.format(**format_args)
@@ -259,15 +258,13 @@ class LocaleTranslator:
                 )
             except AttributeError:
                 form_key = self._get_plural_form_key(count, found_locale_code)
-                raise ValueError(
-                    f"Error: Template for key '{full_key_path_str}' form '{form_key}' is not a string."
-                )
+                raise ValueError(f"Error: Template for key '{full_key_path_str}' form '{form_key}' is not a string.")
 
         return plural_handler
 
     def _resolve_value_by_path(self, path: List[Union[str, int]]) -> Any:
         """
-        Internal method to retrieve and process a value given its full path.
+        Retrieve and process a value given its full path.
 
         Used by LocaleNamespace, LocaleList, and the Translator itself. Handles the
         strict/non-strict behavior for missing keys/indices.
@@ -279,7 +276,6 @@ class LocaleTranslator:
         :raises AttributeError: If the key path is not found (for str keys) and self._strict is True.
         :raises IndexError: If an index path is out of bounds (for int indices) and self._strict is True.
         """
-
         # FIXME: bug with pycharm debugger
         # I noticed that in the debugger pycharm somthing tries to get the `shape` key.
         # If you have any ideas how to fix this instead of such a crutch - I'm waiting for your pull-requests.
@@ -290,17 +286,15 @@ class LocaleTranslator:
         value, found_locale_code = self._get_value_by_path(path)
 
         if value is _NOT_FOUND:
-            full_key_path = '.'.join(map(str, path))
+            full_key_path = ".".join(map(str, path))
             if self._strict:
-                # IndexError for a missing index path
                 if path and isinstance(path[-1], int):
                     raise IndexError(
-                        f"Locale '{self.locale_code}': Strict mode error: Index out of bounds or path invalid "
+                        f"Locale '{self.locale_code}': Index out of bounds or path invalid "
                         f"for path '{full_key_path}' "
                         f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}')."
                     )
                 else:
-                    # AttributeError for a missing key path
                     raise AttributeError(
                         f"Locale '{self.locale_code}': Strict mode error: Key/index path '{full_key_path}' not found "
                         f"in translations (including default '{self._default_locale_code}')."
@@ -310,14 +304,14 @@ class LocaleTranslator:
                     f"Locale '{self.locale_code}': key/index path '{full_key_path}' not found "
                     f"in translations (including default '{self._default_locale_code}'). None will be returned."
                 )
-                return NoneWrapper(self.locale_code, full_key_path)  # return NoneWrapper when not found
+                return NoneWrapper(self.locale_code, full_key_path)
 
         # If the value is *not* the sentinel, it means _get_value_by_path found *something*
         return self._handle_resolved_value(value, path, found_locale_code)
 
     def __getattr__(self, name: str) -> Any:
         """
-        Handles attribute access for the top level (e.g., `data['en.yml'].messages`).
+        Handle attribute access for the top level (e.g., `data['en.yml'].messages`).
 
         Delegates the resolution to `_resolve_value_by_path` unless the attribute
         exists in the object's attributes.
@@ -334,24 +328,26 @@ class LocaleTranslator:
         return self._resolve_value_by_path([name])
 
     def __iter__(self):
+        """Return an iterator for the current locale data."""
         return iter(self._current_locale_data)
 
     def __call__(self, *args, **kwargs) -> Any:
         """
-        Handles attempts to call the LocaleTranslator object directly.
+        Handle attempts to call the LocaleTranslator object directly.
 
         This is not supported, access keys via dot notation.
 
         :raises TypeError: If the LocaleTranslator object is called.
         """
-
         raise TypeError(
             f"'{type(self).__name__}' object is not callable directly. "
             "Access keys using dot notation (e.g., .greeting, .apples(5))."
         )
 
     def __str__(self) -> str:
+        """Return string representation of the translator."""
         return f"<LocaleTranslator for '{self.locale_code}' (strict={self._strict})>"
 
     def __repr__(self) -> str:
+        """Return string representation of the translator for debugging."""
         return self.__str__()

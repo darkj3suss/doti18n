@@ -9,3 +9,4 @@ dist
 test_locales
 docs/
 build/
+.*
