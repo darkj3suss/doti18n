@@ -38,8 +38,7 @@ class JsonLoader(BaseLoader):
         :raises EmptyFileError: Raised if the file exists but is empty.
         :raises ParseError: Raised if there is an issue with parsing the JSON in the file.
         :raises FileNotFoundError: Raised if the specified file does not exist.
-        :raises Exception: Raise for any other unexpected errors during the file loading
-            process.
+        :raises Exception: Raised for any other unexpected errors during the file loading process.
         """
         filename = os.path.basename(filepath)
         try:

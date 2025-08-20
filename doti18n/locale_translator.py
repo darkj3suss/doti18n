@@ -1,5 +1,6 @@
+from babel import Locale
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from .utils import (
     _NOT_FOUND,
@@ -15,31 +16,6 @@ from .wrapped import (
 )
 
 logger = logging.getLogger(__name__)
-try:
-    from babel import Locale
-except ImportError:
-    logger.warning("Babel is not installed. Library working can be unstable (especially plural forms).")
-
-    if not TYPE_CHECKING:
-
-        class Locale:
-            """Stub Locale class."""
-
-            def __init__(self, *args, **kwargs):
-                """
-                Initialize the stub Locale class.
-
-                The stub plural_form implementation is very basic.
-                A more robust dummy might be needed depending on usage,
-                but 'other' is the most common fallback.
-                """
-                pass
-
-            def plural_form(self, *args, **kwargs):
-                """Stub plural_form function."""
-                # Always return 'other' as a fallback without Babel
-                return "other"
-
 
 class LocaleTranslator:
     """
@@ -89,7 +65,7 @@ class LocaleTranslator:
         Uses _NOT_FOUND sentinel if the path does not exist in either locale.
 
         :param path: The list of keys/indices representing as a path (e.g., ['messages', 'hi'] or ['page', 0, 'title']).
-        :type path: List[Union[str, int]] # Обновить docstring
+        :type path: List[Union[str, int]]
         :return: A tuple containing the value (Any) and the locale code (Optional[str])
                  where the value was found. Returns (None, None) if not found.
         :rtype: Tuple[Any, Optional[str]]
@@ -308,6 +284,12 @@ class LocaleTranslator:
 
         # If the value is *not* the sentinel, it means _get_value_by_path found *something*
         return self._handle_resolved_value(value, path, found_locale_code)
+
+    def get(self, name: str) -> Any:
+        """
+        Symbolic alias for __getattr__
+        """
+        return self._resolve_value_by_path([name])
 
     def __getattr__(self, name: str) -> Any:
         """

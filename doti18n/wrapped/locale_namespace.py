@@ -111,19 +111,11 @@ class LocaleNamespace:
         """Reverse the iteration order."""
         return reversed(list(self.__iter__()))
 
-    def get(self, name: str, default: Any = None) -> Any:
+    def get(self, name: str) -> Any:
         """
-        Retrieve the value of an attribute by name.
-
-        :param name: The name of the attribute to retrieve.
-        :type name: str
-        :param default: The value returned if the attribute does not exist or is falsy.
-        :type default: Any
-        :return: The value of the specified attribute or the default value.
-        :rtype: Any
+        Symbolic alias for __getattr__
         """
-        data = self.__getattr__(name)
-        return data if data else default
+        return self._resolve_value_by_path([name])
 
     def to_list(self):
         """Convert the namespace to a list."""

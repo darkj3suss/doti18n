@@ -28,12 +28,12 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
 ]
 
+[project.dependencies]
+babel = "^2.17.0"
+
 [project.optional-dependencies]
 yaml = [
     "PyYAML>=6.0"
-]
-pluralization = [
-    "babel>=2.17"
 ]
 
 

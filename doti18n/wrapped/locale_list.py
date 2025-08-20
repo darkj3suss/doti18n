@@ -56,7 +56,7 @@ class LocaleList(list):
         if not isinstance(index, int):
             raise TypeError(
                 f"List access for path '{'.'.join(map(str, self._path))}' "
-                f"requires an integer index, not {type(index).__name__}"
+                f"requires an integer index or slice, not {type(index).__name__}"
             )
 
         if 0 <= index < len(self._data):
@@ -66,7 +66,7 @@ class LocaleList(list):
             full_path_str = ".".join(map(str, self._path))
             if self._strict:
                 raise IndexError(
-                    f"Locale '{self._translator.locale_code}': Strict mode error: "
+                    f"Locale '{self._translator.locale_code}': "
                     f"Index {index} out of bounds for list at path '{full_path_str}' (length {len(self._data)})."
                 )
             else:
@@ -75,6 +75,17 @@ class LocaleList(list):
                     f"for list at path '{full_path_str}' (length {len(self._data)}). Returning None."
                 )
                 return None
+
+    def __iter__(self):
+        for index, item in enumerate(self._data):
+            new_path = self._path + [index]
+            yield self._translator._resolve_value_by_path(new_path)
+
+    def get(self, name: str) -> Any:
+        """
+        Symbolic alias for __getattr__
+        """
+        return self._resolve_value_by_path([name])
 
     def __call__(self, *args, **kwargs) -> Any:
         """
@@ -92,8 +103,8 @@ class LocaleList(list):
         )
 
     def __str__(self) -> str:
-        """Return string representation of the list."""
-        return str(self._data)
+        """Return string representation of the path."""
+        return ".".join(map(str, self._path))
 
     def __repr__(self) -> str:
         """Return string representation of the namespace for debugging."""
