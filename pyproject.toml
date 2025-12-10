@@ -27,9 +27,10 @@ classifiers = [
     "Topic :: Software Development :: Localization",
     "Topic :: Text Processing :: Linguistic",
 ]
+dependencies = [
+    "babel>=2.17.0"
+]
 
-[project.dependencies]
-babel = "^2.17.0"
 
 [project.optional-dependencies]
 yaml = [
