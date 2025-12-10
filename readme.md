@@ -1,10 +1,10 @@
 # doti18n [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
 
-Simple and intuitive Python library for loading localizations from YAML files and accessing them easily using dot notation, with powerful support for plural forms and nested data structures.
+Simple and intuitive Python library for loading localizations from YAML, JSON, XML files and accessing them easily using dot notation, with powerful support for plural forms and nested data structures.
 
 ## Description
 
-doti18n provides a convenient way to manage your application's localization strings. By loading data from standard YAML files, the library allows you to access nested translations using a simple **dot syntax (`messages.status.online`) for dictionary keys** and **index syntax (`items[0]`) for list elements**. You can combine these for intuitive navigation through complex nested structures (`pages[0].title`).
+doti18n provides a convenient way to manage your application's localization strings. By loading data from files, the library allows you to access nested translations using a simple **dot syntax (`messages.status.online`) for dictionary keys** and **index syntax (`items[0]`) for list elements**. You can combine these for intuitive navigation through complex nested structures (`pages[0].title`).
 
 Special attention is given to pluralization support using the [Babel](https://pypi.org/project/babel/) library, which is critical for correct localization across different languages. An automatic fallback mechanism to the default locale's value is also implemented if a key or path is missing in the requested locale.
 
@@ -27,19 +27,46 @@ It's designed for ease of use and performance (data is loaded once during initia
 
 doti18n is available on [PyPI](https://pypi.org/project/doti18n/).
 
-Install the basic version (without pluralization support):
+Instaling:
 
 ```bash
 pip install doti18n
 ```
 
-For pluralization support (recommended), install with the optional `pluralization` dependency:
+## Usage
+Here's a basic example of how to use doti18n:
 
-```bash
-pip install doti18n[pluralization]
+Let's say you have a YAML file like this:
+```yaml
+# locales/en.yaml
+greeting: "Hello {}!"
+farewell: "Goodbye $name!"
+items:
+    - name: "Item 1"
+    - name: "Item 2"
+notifications:
+    one: "You have {count} new notification."
+    other: "You have {count} new notifications."
 ```
 
-**Note:** Pluralization support is implemented using the [Babel](https://pypi.org/project/babel/) library. If you install doti18n without the `[pluralization]` optional dependency, pluralization functionality will be limited or unavailable, and the library will log a warning about the missing Babel dependency.
+You can load and use it as follows:
+
+```python
+# Import main class
+from doti18n import LocaleData
+
+# Create a LocaleData instance
+i18n = LocaleData("locales")
+
+# Access translations
+print(i18n["en"].greeting("John"))  # Output: Hello John!
+print(i18n["en"].farewell(name="Alice"))  # Output: Goodbye Alice!
+print(i18n["en"].farewell)  # Output: Goodbye $name!
+print(i18n["en"].farewell())  # Output: Goodbye !
+print(i18n["en"].items[0].name)  # Output: Item 1
+print(i18n["en"].notifications(1))  # Output: You have 1 new notification.
+print(i18n["en"].notifications(5))  # Output: You have 5 new notifications.
+```
 
 ## Project Status
 

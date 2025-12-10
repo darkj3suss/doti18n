@@ -22,18 +22,14 @@ class LocaleData:
         Initialize the LocaleData manager.
 
         :param locales_dir: The path to the directory containing YAML locale files.
-        :type locales_dir: str
         :param default_locale: The code of the default locale. (default: 'en')
-        :type default_locale: str
         :param strict: If `True`, all created LocaleTranslator instances will be in strict mode.
                        That means that where you've gotten warnings before, you'll get exceptions.
                        (default: False).
-        :type strict: bool
         :param preload: If `True`, load all translations at initialization.
                         Not recommended to use with large locale directories.
                         Instead, you can use LocaleData.get("filename") to load individual locale.
                         (default: True)
-        :type preload: bool
         """
         self.locales_dir = locales_dir
         self.default_locale = default_locale.lower()
@@ -93,9 +89,7 @@ class LocaleData:
         setting of this LocaleData instance is passed to the translator.
 
         :param locale_code: The code of the desired locale (e.g., 'en', 'FR').
-        :type locale_code: str
         :return: The LocaleTranslator instance for the requested locale.
-        :rtype: LocaleTranslator
         """
         normalized_locale_code = locale_code.lower()
         if normalized_locale_code in self._locale_translators_cache:
@@ -118,9 +112,7 @@ class LocaleData:
         Normalizes the locale code to lowercase for the check.
 
         :param locale_code: The locale code to check (e.g., 'en', 'fr').
-        :type locale_code: str
         :return: True if the locale was loaded and its root is a dictionary, False otherwise.
-        :rtype: bool
         """
         normalized_locale_code = locale_code.lower()
         return isinstance(self._raw_translations.get(normalized_locale_code), dict)
@@ -145,13 +137,10 @@ class LocaleData:
         an error and returns the provided default value.
 
         :param locale_code: The code representing the desired locale, provided as a string.
-        :type locale_code: str
         :param default: An optional fallback value to be returned in case a locale cannot be
             resolved or the default locale is not loaded properly.
-        :type default: Any
         :return: An instance of LocaleTranslator for the specified locale or the fallback
             default value.
-        :rtype: Optional[LocaleTranslator]
         """
         locale_code = locale_code.lower()
         if locale_code in self._locale_translators_cache:

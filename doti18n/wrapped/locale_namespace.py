@@ -28,7 +28,6 @@ class LocaleNamespace:
         Initialize a LocaleNamespace.
 
         :param path: The list of keys representing the path to this namespace.
-        :type path: List[str]
         :param translator: The LocaleTranslator instance this namespace belongs to.
         :type translator: LocaleTranslator
         """
@@ -44,10 +43,8 @@ class LocaleNamespace:
         or raise exception) is determined by the translator's `strict` setting.
 
         :param name: The attribute name (the next key in the path).
-        :type name: str
         :return: The resolved value, which could be a string, another
                  LocaleNamespace, a plural handler callable, or None (in non-strict mode).
-        :rtype: Any
         :raises AttributeError: If the key is not found and the translator is in strict mode.
         """
         new_path = self._path + [name]
@@ -112,9 +109,7 @@ class LocaleNamespace:
         return reversed(list(self.__iter__()))
 
     def get(self, name: str) -> Any:
-        """
-        Symbolic alias for __getattr__
-        """
+        """Symbolic alias for __getattr__."""
         return self._resolve_value_by_path([name])
 
     def to_list(self):

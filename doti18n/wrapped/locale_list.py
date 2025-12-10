@@ -20,11 +20,8 @@ class LocaleList(list):
         Initialize a LocaleList.
 
         :param data: The actual list data from the localization.
-        :type data: List[Any]
         :param path: The list of keys/indices representing the path to this list.
-        :type path: List[Union[str, int]]
         :param translator: The LocaleTranslator instance this list belongs to.
-        :type translator: LocaleTranslator
         """
         self._data = data
         self._path = path
@@ -43,11 +40,9 @@ class LocaleList(list):
         Construct a path and delegate resolution to the LocaleTranslator.
 
         :param index: The index to access in the list.
-        :type index: int
         :return: The resolved value, which could be a string, another
                  LocaleNamespace, LocaleList, plural handler callable,
                  or None (in non-strict mode on error).
-        :rtype: Any
         :raises IndexError: If the index is out of bounds and the translator is in strict mode.
         """
         if isinstance(index, slice):
@@ -77,15 +72,10 @@ class LocaleList(list):
                 return None
 
     def __iter__(self):
+        """Iterate over the elements of the list."""
         for index, item in enumerate(self._data):
             new_path = self._path + [index]
             yield self._translator._resolve_value_by_path(new_path)
-
-    def get(self, name: str) -> Any:
-        """
-        Symbolic alias for __getattr__
-        """
-        return self._resolve_value_by_path([name])
 
     def __call__(self, *args, **kwargs) -> Any:
         """

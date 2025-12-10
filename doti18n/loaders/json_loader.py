@@ -27,14 +27,11 @@ class JsonLoader(BaseLoader):
         It returns the parsed data as a dictionary or a list of dictionaries, depending on the file content.
 
         :param filepath: The path to the JSON file to be loaded.
-        :type filepath: str
         :param ignore_warnings: If set to True, warnings encountered during validation
             will be ignored. Defaults to False.
-        :type ignore_warnings: bool
         :return: Parsed data from the JSON file. It could be a dictionary where the key
             is a locale code and the value is its corresponding data, or a list of
             dictionaries containing locale information.
-        :rtype: Optional[Dict | List[dict]]
         :raises EmptyFileError: Raised if the file exists but is empty.
         :raises ParseError: Raised if there is an issue with parsing the JSON in the file.
         :raises FileNotFoundError: Raised if the specified file does not exist.

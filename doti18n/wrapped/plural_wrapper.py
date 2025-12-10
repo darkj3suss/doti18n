@@ -18,11 +18,8 @@ class PluralWrapper:
         and whether the instance operates in strict mode (`strict`).
 
         :param func: The callable function associated with this instance.
-        :type func: Callable
         :param path: A string representing the path for this instance.
-        :type path: str
         :param strict: A boolean flag indicating if strict mode is enabled. Defaults to False.
-        :type strict: bool
         """
         self.func = func
         self.path = path

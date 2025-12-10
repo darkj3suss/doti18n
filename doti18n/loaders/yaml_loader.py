@@ -36,13 +36,9 @@ class YamlLoader(BaseLoader):
         and parsed in cases such as missing files, malformed YAML syntax, or other exceptions.
 
         :param filepath: The full path to the YAML file to load.
-        :type filepath: str
-
         :return: A dictionary containing locale-specific data if a single document is found.
             For multi-document files, a list of dictionaries is returned. If the file is empty,
             an empty dictionary is returned.
-        :rtype: Optional[Dict | List[dict]]
-
         :raises ImportError: If the PyYAML package is not installed.
         :raises FileNotFoundError: If the specified file does not exist.
         :raises ParseError: For issues in parsing the YAML file.

@@ -31,11 +31,9 @@ class XmlLoader(BaseLoader):
         The method ensures validation of loaded data and extracts locale codes based on filenames.
 
         :param filepath: The path to the XML localization file to be loaded.
-        :type filepath: str
         :return: A dictionary with locale code and its translations for single locale
                  documents, or a list of dictionaries for multiple locale XML files.
                  Returns None if the file is determined to be empty or invalid.
-        :rtype: Optional[Dict | List[dict]]
         :raises EmptyFileError: If the file is empty and contains no data.
         :raises InvalidLocaleDocumentError: If the data structure in the file does not
                  match the expected format.

@@ -16,9 +16,7 @@ class NoneWrapper:
         Initialize an instance of the class with a given locale code and path.
 
         :param locale_code: The locale code representing the language or region.
-        :type locale_code: str
         :param path: The file path or directory associated with the instance.
-        :type path: str
         """
         self._path = path
         self._locale_code = locale_code
