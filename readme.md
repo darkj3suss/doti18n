@@ -1,4 +1,7 @@
-# doti18n [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
+[![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
+<div align="center">
+<img src=".github/logo.svg" alt="doti18n"/>
+</div>
 
 Simple and intuitive Python library for loading localizations from YAML, JSON, XML files and accessing them easily using dot notation, with powerful support for plural forms and nested data structures.
 
