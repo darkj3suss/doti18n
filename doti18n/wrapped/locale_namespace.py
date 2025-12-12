@@ -23,6 +23,8 @@ class LocaleNamespace:
     to nested YAML structures like `messages.status.online`.
     """
 
+    __slots__ = ("_path", "_translator")
+
     def __init__(self, path: List[Union[str, int]], translator: "doti18n.LocaleTranslator"):
         """
         Initialize a LocaleNamespace.
