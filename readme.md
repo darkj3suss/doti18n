@@ -69,6 +69,14 @@ print(i18n["en"].farewell())  # Output: Goodbye !
 print(i18n["en"].items[0].name)  # Output: Item 1
 print(i18n["en"].notifications(1))  # Output: You have 1 new notification.
 print(i18n["en"].notifications(5))  # Output: You have 5 new notifications.
+
+# You also can get LocaleTranslator object directly
+t = i18n["en"]
+print(t.notifications(2))  # Output: You have 2 new notifications.
+
+# Even more, you can do this for any level of nesting
+it = t.items
+print(it[1].name)  # Output: Item 2
 ```
 
 ## Project Status
