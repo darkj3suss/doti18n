@@ -56,7 +56,7 @@ class StringWrapper(str):
         :return: A formatted string based on the specified placeholders and provided
                  arguments and keyword arguments.
         """
-        if "%" in self or "$" in self:
+        if "%" in self or "$" in self or "{{" in self or "}}" in self:
             return self.formatter(*args, **kwargs)
 
         return self.format(*args, **kwargs)
