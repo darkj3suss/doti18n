@@ -1,9 +1,10 @@
 [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
-<div align="center">
-<img src=".github/logo.svg" alt="doti18n"/>
+<div style="text-align:center">
+<img src="https://i.ibb.co/0RWMD4HM/logo.png" alt="doti18n">
 </div>
 
 Simple and intuitive Python library for loading localizations from YAML, JSON, XML files and accessing them easily using dot notation, with powerful support for plural forms and nested data structures.
+It also gives you strong DX(Developer Experience) with stubs generation for your localization files.
 
 ## Description
 
@@ -78,6 +79,25 @@ print(t.notifications(2))  # Output: You have 2 new notifications.
 it = t.items
 print(it[1].name)  # Output: Item 2
 ```
+
+### CLI
+
+Stub generator is available via the CLI command `doti18n stub` - helper that creates type stubs for your translations.
+
+What it does and why you want it:
+* Scans all locale files in the provided directory and collects the keys structure.
+* Generates `doti18n/__init__.pyi` with classes and method signatures for each locale (namespaces, keys and formatted-string signatures).
+* Provides IDE autocompletion and helps type-checkers (mypy, Pyright) catch typos in translation keys - makes working with localizations safer and more convenient.
+
+Usage examples:
+
+```
+python -m doti18n stub locales/              # generate stubs (default locale = en)
+python -m doti18n stub locales/ -lang fr     # set another default locale
+python -m doti18n stub --clean               # remove previously generated stubs
+```
+
+Note: the command will warn if run outside a virtual environment - it's recommended to run it inside a venv to avoid dependency conflicts.
 
 ## Project Status
 
