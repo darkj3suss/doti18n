@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Dict, List, NoReturn, Optional, Union
 
 from ..errors import EmptyFileError, InvalidLocaleIdentifierError, ParseError
@@ -26,7 +27,7 @@ class YamlLoader(BaseLoader):
         self._strict = strict
         self.file_extension = (".yaml", ".yml")
 
-    def load(self, filepath: str) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """
         Load and validate localization data from a YAML file.
 

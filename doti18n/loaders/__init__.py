@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 from ..errors import (
@@ -41,7 +42,7 @@ class Loader:
 
         return result
 
-    def load(self, filepath: str) -> Union[Dict, List[Tuple[str, dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Union[Dict, List[Tuple[str, dict]]]:
         """
         Load the content of a file and processes it based on its extension.
 

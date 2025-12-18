@@ -1,9 +1,15 @@
 import logging
 import os
 import xml.etree.ElementTree as Et
+from pathlib import Path
 from typing import Dict, List, NoReturn, Optional, Union
 
-from ..errors import EmptyFileError, InvalidLocaleDocumentError, InvalidLocaleIdentifierError, ParseError
+from ..errors import (
+    EmptyFileError,
+    InvalidLocaleDocumentError,
+    InvalidLocaleIdentifierError,
+    ParseError,
+)
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
@@ -19,7 +25,7 @@ class XmlLoader(BaseLoader):
         self._strict = strict
         self.file_extension = ".xml"
 
-    def load(self, filepath: str) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """
         Load and processes localization data from an XML file.
 
