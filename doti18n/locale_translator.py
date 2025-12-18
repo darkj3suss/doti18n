@@ -54,6 +54,20 @@ class LocaleTranslator:
         self._default_locale_code = default_locale_code
         self._strict = strict
 
+        self._main_plural_func = self._load_plural_func(locale_code)
+        if default_locale_code == locale_code:
+            self._default_plural_func = self._main_plural_func
+        else:
+            self._default_plural_func = self._load_plural_func(default_locale_code)
+
+    def _load_plural_func(self, code: str):
+        """Helper to safely load Babel plural function."""
+        try:
+            return Locale(code.replace("-", "_")).plural_form
+        except Exception as e:
+            self._logger.warning(f"Failed to load locale '{code}': {e}")
+            return lambda n: "other"
+
     def _get_value_by_path(self, path: List[Union[str, int]]) -> Tuple[Any, Optional[str]]:
         """
         Retrieve the value at the given path.
@@ -91,17 +105,16 @@ class LocaleTranslator:
         :return: The plural form key (e.g., 'one', 'few', 'many', 'other').
                  Returns 'other' as a fallback in case of errors.
         """
-        target_locale_code = locale_code if locale_code else self.locale_code
+        if locale_code is None or locale_code == self.locale_code:
+            return self._main_plural_func(abs(count))
+
+        if locale_code == self._default_locale_code:
+            return self._default_plural_func(abs(count))
+
+        # This is just in case
         try:
-            locale_obj = Locale(target_locale_code.replace("-", "_"))
-            plural_rule_func = locale_obj.plural_form
-            return plural_rule_func(abs(count))
-        except Exception as e:
-            self._logger.warning(
-                f"Babel failed to get plural rule function or category for count {abs(count)} "
-                f"and locale '{target_locale_code}': {e}. Falling back to 'other'.",
-                exc_info=True,
-            )
+            return Locale(locale_code.replace("-", "_")).plural_form(abs(count))
+        except Exception:
             return "other"
 
     def _get_plural_template(
@@ -119,7 +132,7 @@ class LocaleTranslator:
 
         :param path: The full path to the plural dictionary.
         :param count: The number used to determine the plural form.
-        :param current_plural_dict: The plural dictionary found in the current locale
+        :param current_plural_dict: The plural dictionary is found in the current locale
                                     (or the first locale where it was found).
         :param current_plural_locale_code: The locale code where `current_plural_dict` was found.
                                          Used for getting the plural form key.
@@ -152,7 +165,7 @@ class LocaleTranslator:
         Logs a warning if an explicit None value is found.
 
         :param value: The value retrieved by _get_value_by_path.
-        :param path: The full path used to retrieve the value.
+        :param path: The full path is used to retrieve the value.
         :param found_locale_code: The locale code where the value was found.
         :return: The processed value or handler.
         :raises ValueError: If formatting a plural string fails.

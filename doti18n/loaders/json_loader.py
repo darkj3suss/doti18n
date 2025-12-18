@@ -1,9 +1,14 @@
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from ..errors import EmptyFileError, InvalidLocaleIdentifierError, ParseError
+from ..errors import (
+    EmptyFileError,
+    InvalidLocaleIdentifierError,
+    ParseError,
+)
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
@@ -19,7 +24,7 @@ class JsonLoader(BaseLoader):
         self._strict = strict
         self.file_extension = ".json"
 
-    def load(self, filepath: str, ignore_warnings: bool = False) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """
         Load and validate locale data from a JSON file.
 
@@ -27,8 +32,6 @@ class JsonLoader(BaseLoader):
         It returns the parsed data as a dictionary or a list of dictionaries, depending on the file content.
 
         :param filepath: The path to the JSON file to be loaded.
-        :param ignore_warnings: If set to True, warnings encountered during validation
-            will be ignored. Defaults to False.
         :return: Parsed data from the JSON file. It could be a dictionary where the key
             is a locale code and the value is its corresponding data, or a list of
             dictionaries containing locale information.

@@ -15,6 +15,8 @@ class LocaleList(list):
     to nested YAML structures like `locale["en"].list[0].item`.
     """
 
+    __slots__ = ("_data", "_path", "_translator", "_strict")
+
     def __init__(self, data: List[Any], path: List[Union[str, int]], translator: "doti18n.LocaleTranslator"):
         """
         Initialize a LocaleList.

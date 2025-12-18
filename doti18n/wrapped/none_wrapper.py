@@ -11,6 +11,8 @@ class NoneWrapper:
     useful in localized applications or scenarios where attribute lookups might fail.
     """
 
+    __slots__ = ("_path", "_locale_code")
+
     def __init__(self, locale_code: str, path: str):
         """
         Initialize an instance of the class with a given locale code and path.

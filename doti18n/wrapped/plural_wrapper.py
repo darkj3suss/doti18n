@@ -9,6 +9,8 @@ class PluralWrapper:
     And add more convenience methods.
     """
 
+    __slots__ = ("func", "path", "strict", "logger")
+
     def __init__(self, func: Callable, path: str, strict: bool = False):
         """
         Initialize an instance with the provided function, path, and strictness flag.

@@ -96,8 +96,15 @@ class LocaleData:
             return self._locale_translators_cache[normalized_locale_code]
 
         current_locale_data = self._raw_translations.get(normalized_locale_code)
-        default_locale_data = self._raw_translations.get(self.default_locale)
+        if not isinstance(current_locale_data, dict):
+            self._logger.warning(
+                f"Locale '{locale_code}' was not found or root is not a dictionary. "
+                f"({type(current_locale_data).__name__ if current_locale_data is not None else 'NoneType'}). "
+                f"Falling back to default locale '{self.default_locale}'.",
+            )
+            return self[self.default_locale]
 
+        default_locale_data = self._raw_translations.get(self.default_locale)
         translator = LocaleTranslator(
             normalized_locale_code, current_locale_data, default_locale_data, self.default_locale, strict=self._strict
         )

@@ -42,7 +42,26 @@ PLACEHOLDER_REGEX = re.compile(
 class StringWrapper(str):
     """A wrapper for a string value, which allows you to format strings by calling magic function `__call__`."""
 
+    __slots__ = ("_formatter",)
+
     def __call__(self, *args, **kwargs) -> str:
+        """
+        Callable class method to format a string based on the presence of specific
+        formatting placeholders. This method checks for particular placeholders such
+        as '%' or '$' within the string and processes the string accordingly using
+        the corresponding formatter method or the default format method.
+
+        :param args: Positional arguments to be passed to the formatter or format methods.
+        :param kwargs: Keyword arguments to be passed to the formatter or format methods.
+        :return: A formatted string based on the specified placeholders and provided
+                 arguments and keyword arguments.
+        """
+        if "%" in self or "$" in self or "{{" in self or "}}" in self:
+            return self.formatter(*args, **kwargs)
+
+        return self.format(*args, **kwargs)
+
+    def formatter(self, *args, **kwargs) -> str:
         """
         Format a given string by replacing placeholders with corresponding values.
 
