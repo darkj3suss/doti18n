@@ -1,5 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
-<div style="text-align:center">
+<div style="align:center">
 <img src="https://i.ibb.co/0RWMD4HM/logo.png" alt="doti18n">
 </div>
 
@@ -21,6 +21,7 @@ It's designed for ease of use and performance (data is loaded once during initia
 *   Loading localization data from YAML, JSON, XML files.
 *   Intuitive access to nested data structures (dictionaries and lists) using **dot notation (`.`) for dictionary keys and index notation (`[]`) for list elements**.
 *   Support for **combined access paths** (`data.list[0].nested_key`).
+*   CLI tool for generating type stubs for your localization files to enhance IDE autocompletion and type-checking.
 *   **Strict mode** (`strict=True`) to raise exceptions on missing paths or incorrect usage.
 *   **Non-strict mode** (default) to return a special `NoneWrapper` object and log a warning on missing paths or incorrect usage.
 *   Pluralization support for count-dependent strings (requires `Babel`).
