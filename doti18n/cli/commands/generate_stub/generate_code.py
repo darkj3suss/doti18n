@@ -1,14 +1,18 @@
-import os
 from dataclasses import dataclass
-
-from doti18n.loaders import Loader
-from doti18n.utils import _deep_merge
 from .formatted_string_stub import generate_stub_signature
+from .plural_stub import generate_plural_stub
+from doti18n.utils import _is_plural_dict
+from textwrap import indent
 
 
 LIBRARY_CODE = \
     """
 class LocaleTranslator:
+    def __getattr__(self, name: str) -> Any: ...
+
+
+class LocaleTranslator:
+    def get(self, name: str) -> Any: ...
     def __getattr__(self, name: str) -> Any: ...
 
 
@@ -37,12 +41,18 @@ class StubLocale:
 def fill_stub_namespace(locale_data: dict, element: StubNamespace):
     for key, value in locale_data.items():
         if isinstance(value, dict):
-            element.childs[key] = fill_stub_namespace(value, StubNamespace(f"{element.name}_{key}", {}, {}))
+            if _is_plural_dict(value):
+                element.args[key] = value
+            else:
+                element.childs[key] = fill_stub_namespace(value, StubNamespace(f"{element.name}_{key}", {}, {}))
         elif isinstance(value, list):
             element.args[key] = []
             for n, v in enumerate(value):
                 if isinstance(v, dict):
-                    element.args[key].append(fill_stub_namespace(v, StubNamespace(f"{element.name}_{key}_{n}", {}, {})))
+                    if _is_plural_dict(v):
+                        element.args[key].append(v)
+                    else:
+                        element.args[key].append(fill_stub_namespace(v, StubNamespace(f"{element.name}_{key}_{n}", {}, {})))
                 else:
                     element.args[key].append(v)
         else:
@@ -57,7 +67,10 @@ def generate_stub_classes(locale_data: dict) -> list[StubLocale]:
         locale = StubLocale(key, {}, {})
         for key_, value_ in value.items():
             if isinstance(value_, dict):
-                locale.childs[key_] = fill_stub_namespace(value_, StubNamespace(key_, {}, {}))
+                if _is_plural_dict(value_):
+                    locale.args[key_] = value_
+                else:
+                    locale.childs[key_] = fill_stub_namespace(value_, StubNamespace(key_, {}, {}))
             else:
                 locale.args[key_] = value_
 
@@ -76,35 +89,39 @@ def generate_class(cls: StubLocale | StubNamespace):
     if isinstance(cls, StubNamespace):
         lines.append(f"class {normalize_name(cls.name)}:")
     else:
-        lines.append(f"class {cls.name.capitalize()}Locale:")
+        lines.append(f"class {cls.name.capitalize()}Locale(LocaleTranslator):")
 
     for key, value in cls.args.items():
-        _type = None if value is None else type(value).__name__
-        if _type == "list":
-            line = f"    {key}: list = ["
-            for n, v in enumerate(value):
-                if isinstance(v, StubNamespace):
-                    line += f"{normalize_name(v.name)}(), "
-                elif isinstance(v, str):
-                    data, flag = generate_stub_signature(f"{key}_{n}", v)
-                    if flag:
-                        lines.append(f"    {data}")
-                        line += f"self.{key}_{n}, "
-                    else:
-                        line += f"{repr(v)}, "
-                else:
-                    line += f"{repr(v)}, "
-            lines.append(line[:-2] + "]")
+        if value is None:
+            lines.append(f"    {key}: None = None")
+            continue
 
-        elif _type == "str":
-            data, flag = generate_stub_signature(key, value)
-            if flag:
-                lines.append(f"    {data}")
+        if isinstance(value, str):
+            sig, is_func = generate_stub_signature(key, value)
+            if is_func:
+                lines.append(f"    {sig}")
             else:
-                lines.append(f"    {key}: {_type} = {repr(value)}")
+                lines.append(f"    {key}: str = {repr(value)}")
+            continue
 
-        else:
-            lines.append(f"    {key}: {_type} = {repr(value)}")
+        if isinstance(value, dict):
+            if _is_plural_dict(value):
+                stub = generate_plural_stub(key, value)
+                lines.append(indent(stub.rstrip(), '    '))
+            else:
+                lines.append(f"    {key}: dict = {repr(value)}")
+            continue
+
+        if isinstance(value, list):
+            for i, item in enumerate(value):
+                if isinstance(item, dict) and _is_plural_dict(item):
+                    stub_name = f"{key}_{i}"
+                    stub = generate_plural_stub(stub_name, item)
+                    lines.append(indent(stub.rstrip(), '    '))
+            lines.append(f"    {key}: list = {repr(value)}")
+            continue
+
+        lines.append(f"    {key}: {type(value).__name__} = {repr(value)}")
 
     for key, value in cls.childs.items():
         name = normalize_name(value.name)
@@ -123,11 +140,11 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
             for value in stub_namespace.childs.values():
                 process_childs(value)
 
-            for value in stub_namespace.args.values():
-                if isinstance(value, list):
-                    for v in value:
-                        if isinstance(v, StubNamespace):
-                            process_childs(v)
+            for v in stub_namespace.args.values():
+                if isinstance(v, list):
+                    for item in v:
+                        if isinstance(item, dict) and _is_plural_dict(item):
+                            pass
 
             code.append(generate_class(stub_namespace))
 
@@ -138,4 +155,5 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         LIBRARY_CODE += f"\n    @overload\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
 
     LIBRARY_CODE += f"\n    @overload\n    def __getitem__(self, locale_code: str) -> {default_locale.capitalize()}Locale: ...\n"
-    return "from typing import Any, overload, Optional, Union, Literal, List\n\n" + "".join(code) + LIBRARY_CODE
+    header = "from typing import Any, overload, Optional, Union, Literal, List\n\n"
+    return header + "".join(code) + LIBRARY_CODE

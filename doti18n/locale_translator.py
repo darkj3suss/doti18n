@@ -219,7 +219,7 @@ class LocaleTranslator:
             format_args = {"count": count}
             format_args.update(kwargs)
             try:
-                return template.format(**format_args)
+                return StringWrapper(template)(**format_args)
             except KeyError as e:
                 form_key = self._get_plural_form_key(count, found_locale_code)
                 raise ValueError(
