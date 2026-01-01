@@ -124,6 +124,15 @@ class LocaleData:
         normalized_locale_code = locale_code.lower()
         return isinstance(self._raw_translations.get(normalized_locale_code), dict)
 
+    def __iter__(self):
+        """
+        Iterate over loaded locales.
+        Generates LocaleTranslator instances for each loaded locale.
+        :return: LocaleTranslator
+        """
+        for locale_code in self.loaded_locales:
+            yield self.get_translation(locale_code)
+
     @property
     def loaded_locales(self) -> List[str]:
         """

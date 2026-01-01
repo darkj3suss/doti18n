@@ -1,6 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, List, SupportsIndex, Union, overload
 
+
 if TYPE_CHECKING:
     import doti18n
 
