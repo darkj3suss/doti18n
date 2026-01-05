@@ -161,9 +161,18 @@ class LocaleData:
         locale_code = locale_code.lower()
         if locale_code in self._locale_translators_cache:
             return self._locale_translators_cache[locale_code]
+        elif locale_code in self.loaded_locales and type(self._raw_translations[locale_code]) is dict:
+            _t = LocaleTranslator(
+                locale_code,
+                self._raw_translations[locale_code],
+                self._raw_translations.get(self.default_locale, {}),
+                self.default_locale,
+                strict=self._strict,
+            )
+            self._locale_translators_cache[locale_code] = _t
+            return _t
 
         self._ensure_locale_loaded(locale_code)
-
         if locale_code != self.default_locale:
             self._ensure_locale_loaded(self.default_locale)
 
