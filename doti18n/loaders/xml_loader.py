@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 class XmlLoader(BaseLoader):
     """Loader for XML files."""
+    file_extension = ".xml"
 
     def __init__(self, strict: bool = False):
         """Initialize the XmlLoader class."""
         self._logger = logger
         self._strict = strict
-        self.file_extension = ".xml"
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """

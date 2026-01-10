@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 class YamlLoader(BaseLoader):
     """Loader for YAML files."""
+    file_extension = (".yaml", ".yml")
 
     def __init__(self, strict: bool = False):
         """Initialize the YamlLoader class."""
         self._logger = logger
         self._strict = strict
-        self.file_extension = (".yaml", ".yml")
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """

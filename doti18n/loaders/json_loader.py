@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 
 class JsonLoader(BaseLoader):
     """Loader for JSON files."""
+    file_extension = ".json"
 
     def __init__(self, strict: bool = False):
         """Initialize the JsonLoader class."""
         self._logger = logger
         self._strict = strict
-        self.file_extension = ".json"
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """
