@@ -204,7 +204,7 @@ class LocaleData:
             return None
 
         found_path = None
-        for extension in self._loader.SUPPORTED_EXTENSIONS:
+        for extension in self._loader.get_supported_extensions():
             filepath = os.path.join(self.locales_dir, f"{locale_code}{extension}")
             if os.path.exists(filepath):
                 found_path = filepath

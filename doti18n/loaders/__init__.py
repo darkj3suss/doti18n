@@ -26,12 +26,11 @@ class Loader:
         """Initialize the Loader class."""
         self._logger = logger
         self._strict = strict
-        self._LOADERS = BaseLoader._LOADERS
-        self.SUPPORTED_EXTENSIONS = self._get_supported_extensions()
 
-    def _get_supported_extensions(self):
+    @staticmethod
+    def get_supported_extensions():
         result = []
-        for loader in self._LOADERS.values():
+        for loader in BaseLoader._LOADERS.values():
             if type(loader.file_extension) is str:
                 result.append(loader.file_extension)
             else:
@@ -61,7 +60,7 @@ class Loader:
         if not extension:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
-        if loader := self._LOADERS.get(extension.lower()):
+        if loader := BaseLoader._LOADERS.get(extension.lower()):
             data = loader(self._strict).load(filepath)
             if isinstance(data, list):
                 return self.load_multiple_locales(filename, data)
@@ -72,7 +71,7 @@ class Loader:
         else:
             return self._throw(
                 f"Unsupported file extension '{extension}' in '{filename}'. "
-                f"doti18n supports: {self.SUPPORTED_EXTENSIONS}",
+                f"doti18n supports: {self.get_supported_extensions()}",
                 UnsupportedFileExtensionError,
             )
 

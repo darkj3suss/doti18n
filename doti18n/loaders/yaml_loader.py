@@ -9,10 +9,8 @@ from .base_loader import BaseLoader
 
 try:
     import yaml
-
-    _yaml_available = True
 except ImportError:
-    _yaml_available = False
+    yaml = None
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +43,7 @@ class YamlLoader(BaseLoader):
         :raises ParseError: For issues in parsing the YAML file.
         :raises Exception: For any other unexpected exceptions during the load process.
         """
-        if not _yaml_available:
+        if not yaml:
             raise ImportError("PyYAML package is not installed, cannot load YAML files.")
 
         filename = os.path.basename(filepath)
