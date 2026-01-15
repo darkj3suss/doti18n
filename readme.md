@@ -107,6 +107,11 @@ python -m doti18n stub --clean
 
 **Alpha Stage:** The API is stable but may evolve before the 1.0.0 release. Feedback and feature requests are highly appreciated!
 
+
+## Documentation
+Documentation is available at:  
+https://darkj3suss.github.io/doti18n/
+
 ## License
 
 MIT License. See [LICENSE](https://github.com/darkj3suss/doti18n/blob/main/LICENSE) for details.
