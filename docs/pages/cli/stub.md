@@ -31,8 +31,8 @@ doti18n stub locales/
 **Autocompletion:**
 Your IDE will now suggest available keys and methods.
 
-<video width="80%" autoplay="autoplay" loop>
-  <source src="/assets/images/stub.gif" type="video/mp4">
+<video width="80%" autoplay loop muted playsinline>
+  <source src="/doti18n/assets/images/stub.mp4" type="video/mp4">
   Your browser doesn't support video
 </video>
 
