@@ -37,6 +37,9 @@ yaml = [
     "PyYAML>=6.0"
 ]
 
+[project.scripts]
+doti18n = "doti18n.cli:main"
+
 
 [tool.ruff]
 line-length = 120

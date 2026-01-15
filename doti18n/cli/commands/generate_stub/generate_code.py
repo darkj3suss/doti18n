@@ -8,12 +8,7 @@ from textwrap import indent
 LIBRARY_CODE = \
     """
 class LocaleTranslator:
-    def __getattr__(self, name: str) -> Any: ...
-
-
-class LocaleTranslator:
     def get(self, name: str) -> Any: ...
-    def __getattr__(self, name: str) -> Any: ...
 
 
 class LocaleData:
@@ -21,7 +16,7 @@ class LocaleData:
     def __contains__(self, locale_code: str) -> bool: ...
     @property
     def loaded_locales(self) -> List[str]: ...
-    def get_translation(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]: ..."""
+    def get_locale(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]: ..."""
 
 
 @dataclass

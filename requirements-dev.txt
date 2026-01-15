@@ -6,3 +6,5 @@ black
 ruff
 mypy
 mkdocs
+mkdocs-material[imaging]
+mkdocs-minify-plugin

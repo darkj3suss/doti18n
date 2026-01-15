@@ -1,49 +1,48 @@
 [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
-<div style="align:center">
-<img src="https://i.ibb.co/0RWMD4HM/logo.png" alt="doti18n">
+
+<div align="display: flex; justify-content: center;">
+  <img src="https://i.ibb.co/0RWMD4HM/logo.png" alt="doti18n" width="90%"/>
+  <br>
+  <b>Type-safe localization library for Python.</b>
+  <br>
+  Access YAML, JSON, and XML translations using dot-notation.
 </div>
 
-Simple and intuitive Python library for loading localizations from YAML, JSON, XML files and accessing them easily using dot notation, with powerful support for plural forms and nested data structures.
-It also gives you strong DX(Developer Experience) with stubs generation for your localization files.
+---
 
-## Description
+## Overview
 
-doti18n provides a convenient way to manage your application's localization strings. By loading data from files, the library allows you to access nested translations using a simple **dot syntax (`messages.status.online`) for dictionary keys** and **index syntax (`items[0]`) for list elements**. You can combine these for intuitive navigation through complex nested structures (`pages[0].title`).
+**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales.en.messages.error`.
 
-Special attention is given to pluralization support using the [Babel](https://pypi.org/project/babel/) library, which is critical for correct localization across different languages. An automatic fallback mechanism to the default locale's value is also implemented if a key or path is missing in the requested locale.
+It focuses on **Developer Experience (DX)** by providing a CLI tool to generate `.pyi` stubs. This enables **IDE autocompletion** and allows static type checkers (mypy, pyright) to catch missing keys at build time.
 
-The library offers both a forgiving non-strict mode (returning a special wrapper and logging warnings) and a strict mode (raising exceptions) for handling missing paths.
+### Key Features
 
-It's designed for ease of use and performance (data is loaded once during initialization and translator objects are cached).
-
-## Features
-
-*   Loading localization data from YAML, JSON, XML files.
-*   Intuitive access to nested data structures (dictionaries and lists) using **dot notation (`.`) for dictionary keys and index notation (`[]`) for list elements**.
-*   Support for **combined access paths** (`data.list[0].nested_key`).
-*   CLI tool for generating type stubs for your localization files to enhance IDE autocompletion and type-checking.
-*   **Strict mode** (`strict=True`) to raise exceptions on missing paths or incorrect usage.
-*   **Non-strict mode** (default) to return a special `NoneWrapper` object and log a warning on missing paths or incorrect usage.
-*   Pluralization support for count-dependent strings (requires `Babel`).
-*   Automatic fallback to the default locale if a key/path is missing in the current locale.
-*   Caching of loaded data and translator objects for efficient access.
+*   **Dot-Notation:** Access nested keys via attributes (`data.key`) and lists via indices (`items[0]`).
+*   **Type Safety:** Generate stubs to get full IDE support and catch typos instantly.
+*   **Pluralization:** robust support powered by [Babel](https://babel.pocoo.org/).
+*   **Format Agnostic:** Supports YAML, JSON, and XML out of the box.
+*   **Safety Modes:** 
+    *   **Strict:** Raises exceptions for missing keys (good for dev/test).
+    *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
+*   **Fallback:** Automatically falls back to the default locale if a key is missing.
 
 ## Installation
-
-doti18n is available on [PyPI](https://pypi.org/project/doti18n/).
-
-Instaling:
 
 ```bash
 pip install doti18n
 ```
 
-## Usage
-Here's a basic example of how to use doti18n:
+If you use YAML files:
+```bash
+pip install doti18n[yaml]
+```
 
-Let's say you have a YAML file like this:
+## Usage
+
+**1. Create a localization file** (`locales/en.yaml`):
+
 ```yaml
-# locales/en.yaml
 greeting: "Hello {}!"
 farewell: "Goodbye $name!"
 items:
@@ -54,61 +53,65 @@ notifications:
     other: "You have {count} new notifications."
 ```
 
-You can load and use it as follows:
+**2. Access it in Python:**
 
 ```python
-# Import main class
 from doti18n import LocaleData
 
-# Create a LocaleData instance
+# Initialize (loads and caches data)
 i18n = LocaleData("locales")
+en = i18n["en"]
 
-# Access translations
-print(i18n["en"].greeting("John"))  # Output: Hello John!
-print(i18n["en"].farewell(name="Alice"))  # Output: Goodbye Alice!
-print(i18n["en"].farewell)  # Output: Goodbye $name!
-print(i18n["en"].farewell())  # Output: Goodbye !
-print(i18n["en"].items[0].name)  # Output: Item 1
-print(i18n["en"].notifications(1))  # Output: You have 1 new notification.
-print(i18n["en"].notifications(5))  # Output: You have 5 new notifications.
+# 1. Standard formatting (Python-style)
+print(en.greeting("John"))           # Output: Hello John!
 
-# You also can get LocaleTranslator object directly
-t = i18n["en"]
-print(t.notifications(2))  # Output: You have 2 new notifications.
+# 2. Variable formatting (Shell-style)
+print(en.farewell(name="Alice"))     # Output: Goodbye Alice!
 
-# Even more, you can do this for any level of nesting
-it = t.items
-print(it[1].name)  # Output: Item 2
+# 3. Raw strings and graceful handling
+print(en.farewell)                   # Output: Goodbye $name! (Raw string)
+print(en.farewell())                 # Output: Goodbye ! (Missing var handled)
+
+# 4. List access
+print(en.items[0].name)              # Output: Item 1
+
+# 5. Pluralization
+print(en.notifications(1))           # Output: You have 1 new notification.
+print(en.notifications(5))           # Output: You have 5 new notifications.
 ```
 
-### CLI
+## CLI & Type Safety
 
-Stub generator is available via the CLI command `doti18n stub` - helper that creates type stubs for your translations.
+doti18n comes with a CLI to generate type stubs (`.pyi`).
 
-What it does and why you want it:
-* Scans all locale files in the provided directory and collects the keys structure.
-* Generates `doti18n/__init__.pyi` with classes and method signatures for each locale (namespaces, keys and formatted-string signatures).
-* Provides IDE autocompletion and helps type-checkers (mypy, Pyright) catch typos in translation keys - makes working with localizations safer and more convenient.
+**Why use it?**
+1.  **Autocompletion:** Your IDE will suggest available keys as you type.
+2.  **Validation:** Static analysis tools will flag errors if you try to access a key that doesn't exist.
 
-Usage examples:
+**Commands:**
 
+```bash
+# Generate stubs for all files in 'locales/' (default lang: en)
+python -m doti18n stub locales/
+
+# Generate stubs with a specific default language
+python -m doti18n stub locales/ -lang fr
+
+# Clean up generated stubs
+python -m doti18n stub --clean
 ```
-python -m doti18n stub locales/              # generate stubs (default locale = en)
-python -m doti18n stub locales/ -lang fr     # set another default locale
-python -m doti18n stub --clean               # remove previously generated stubs
-```
 
-Note: the command will warn if run outside a virtual environment - it's recommended to run it inside a venv to avoid dependency conflicts.
+> **Note:** Run this inside your virtual environment to ensure stubs are generated for the installed package.
 
 ## Project Status
 
-This project is in an early stage of development (**Alpha**). The API may change in future versions before reaching a stable (1.0.0) release. Any feedback and suggestions are welcome!
+**Alpha Stage:** The API is stable but may evolve before the 1.0.0 release. Feedback and feature requests are highly appreciated!
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/darkj3suss/doti18n/blob/main/LICENSE) file for details.
+MIT License. See [LICENSE](https://github.com/darkj3suss/doti18n/blob/main/LICENSE) for details.
 
 ## Contact
 
-If you have questions, feel free to open an issue on GitHub.
-Or you can message me on [Telegram](https://t.me/darkjesuss)
+*   **Issues:** [GitHub Issues](https://github.com/darkj3suss/doti18n/issues)
+*   **Direct:** [Telegram](https://t.me/darkjesuss)
