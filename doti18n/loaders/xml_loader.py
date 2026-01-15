@@ -13,8 +13,6 @@ from ..errors import (
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
-logger = logging.getLogger(__name__)
-
 
 class XmlLoader(BaseLoader):
     """Loader for XML files."""
@@ -22,7 +20,7 @@ class XmlLoader(BaseLoader):
 
     def __init__(self, strict: bool = False):
         """Initialize the XmlLoader class."""
-        self._logger = logger
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:

@@ -13,16 +13,13 @@ except ImportError:
     yaml = None
 
 
-logger = logging.getLogger(__name__)
-
-
 class YamlLoader(BaseLoader):
     """Loader for YAML files."""
     file_extension = (".yaml", ".yml")
 
     def __init__(self, strict: bool = False):
         """Initialize the YamlLoader class."""
-        self._logger = logger
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:

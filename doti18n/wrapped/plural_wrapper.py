@@ -9,7 +9,7 @@ class PluralWrapper:
     And add more convenience methods.
     """
 
-    __slots__ = ("func", "path", "strict", "logger")
+    __slots__ = ("func", "path", "strict", "_logger")
 
     def __init__(self, func: Callable, path: str, strict: bool = False):
         """
@@ -26,7 +26,7 @@ class PluralWrapper:
         self.func = func
         self.path = path
         self.strict = strict
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(self.__class__.__name__)
 
     def __call__(self, *args, **kwargs):
         """Call the wrapped plural handler function."""
@@ -42,4 +42,4 @@ class PluralWrapper:
         if self.strict:
             raise TypeError(msg)
 
-        self.logger.warning(msg)
+        self._logger.warning(msg)

@@ -1,4 +1,3 @@
-import logging
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -10,9 +9,6 @@ from ..utils import _NOT_FOUND
 
 if TYPE_CHECKING:
     import doti18n
-
-
-logger = logging.getLogger(__name__)
 
 
 class LocaleNamespace:

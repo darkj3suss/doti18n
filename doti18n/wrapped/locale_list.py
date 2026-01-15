@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, List, SupportsIndex, Union, overload
 if TYPE_CHECKING:
     import doti18n
 
-logger = logging.getLogger(__name__)
-
 
 class LocaleList(list):
     """
@@ -16,7 +14,7 @@ class LocaleList(list):
     to nested YAML structures like `locale["en"].list[0].item`.
     """
 
-    __slots__ = ("_data", "_path", "_translator", "_strict")
+    __slots__ = ("_data", "_path", "_translator", "_strict", "_logger")
 
     def __init__(self, data: List[Any], path: List[Union[str, int]], translator: "doti18n.LocaleTranslator"):
         """
@@ -28,6 +26,7 @@ class LocaleList(list):
         """
         self._data = data
         self._path = path
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._translator = translator
         self._strict = translator._strict
         super().__init__(data)
@@ -68,7 +67,7 @@ class LocaleList(list):
                     f"Index {index} out of bounds for list at path '{full_path_str}' (length {len(self._data)})."
                 )
             else:
-                logger.warning(
+                self._logger.warning(
                     f"Locale '{self._translator.locale_code}': Index {index} out of bounds "
                     f"for list at path '{full_path_str}' (length {len(self._data)}). Returning None."
                 )

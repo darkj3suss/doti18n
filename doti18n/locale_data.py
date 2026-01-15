@@ -7,8 +7,6 @@ from .loaders import Loader
 from .locale_translator import LocaleTranslator
 from .utils import _deep_merge
 
-logger = logging.getLogger(__name__)
-
 
 class LocaleData:
     """
@@ -33,7 +31,7 @@ class LocaleData:
         """
         self.locales_dir = locales_dir
         self.default_locale = default_locale.lower()
-        self._logger = logger
+        self._logger = logging.getLogger(f"{self.__class__.__name__}")
         self._loader = Loader(strict)
         self._strict = strict
         self._raw_translations: Dict[str, Optional[Dict[str, Any]]] = {}
