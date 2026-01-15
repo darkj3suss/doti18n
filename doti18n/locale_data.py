@@ -131,7 +131,7 @@ class LocaleData:
         :return: LocaleTranslator
         """
         for locale_code in self.loaded_locales:
-            yield self.get_translation(locale_code)
+            yield self.get_locale(locale_code)
 
     @property
     def loaded_locales(self) -> List[str]:
@@ -143,7 +143,7 @@ class LocaleData:
         """
         return [code for code, data in self._raw_translations.items() if isinstance(data, dict)]
 
-    def get_translation(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]:
+    def get_locale(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]:
         """
         Retrieve or create a `LocaleTranslator` instance for the specified locale.
 
