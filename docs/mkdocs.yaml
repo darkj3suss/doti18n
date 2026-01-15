@@ -1,0 +1,95 @@
+site_name: doti18n
+site_url: https://darkj3suss.github.io/doti18n/
+site_author: darkj3suss
+site_description: Documentation for doti18n library
+copyright: Copyright &copy; 2026 darkj3suss
+
+repo_url: https://github.com/darkj3suss/doti18n
+repo_name: GitHub
+edit_uri: edit/main/docs
+
+docs_dir: pages
+
+nav:
+    - Home: index.md
+    - Getting Started: getting_started.md
+    - Usage:
+        - Supported Formats: usage/supported_formats.md
+        - Configuration: usage/configuration.md
+        - Pluralization: usage/pluralization.md
+        - Formatting: usage/formatting.md
+        - Custom Loaders: usage/custom_loaders.md
+    - CLI:
+        - Stub Generation: cli/stub.md
+
+
+theme:
+    name: material
+    logo: assets/images/logo.svg
+    favicon: assets/images/favicon.svg
+    features:
+        - navigation.tabs
+        - navigation.sections
+        - navigation.top
+        - navigation.tracking
+        - navigation.footer
+        - navigation.instant
+        - navigation.indexes
+        - search.suggest
+        - search.highlight
+        - search.share
+        - content.code.copy
+        - content.tooltips
+        - toc.integrate
+    palette:
+        -   scheme: default
+            primary: black
+            accent: deep purple
+            toggle:
+                icon: material/brightness-7
+                name: Switch to dark mode
+
+        -   scheme: slate
+            primary: black
+            accent: deep purple
+            toggle:
+                icon: material/brightness-4
+                name: Switch to light mode
+
+markdown_extensions:
+    - admonition
+    - abbr
+    - attr_list
+    - md_in_html
+    - pymdownx.extra
+    - pymdownx.details
+    - pymdownx.highlight:
+        anchor_linenums: true
+        use_pygments: true
+        line_spans: __span
+        pygments_lang_class: true
+    - pymdownx.superfences:
+        custom_fences:
+            - name: mermaid
+              class: mermaid
+              format: !!python/name:pymdownx.superfences.fence_code_format
+    - pymdownx.tabbed:
+        alternate_style: true
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - toc:
+        permalink: "#"
+
+plugins:
+    - search
+    - minify:
+        minify_html: true
+
+extra:
+    generator: false
+
+extra_css:
+    - assets/stylesheets/extra.css
+
+extra_javascript:
+    - assets/javascripts/logo.js

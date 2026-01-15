@@ -1,7 +1,2 @@
 PyYaml==6.0.2
 babel==2.17.0
-build
-twine
-black
-ruff
-mypy

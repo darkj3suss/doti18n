@@ -9,23 +9,18 @@ from .base_loader import BaseLoader
 
 try:
     import yaml
-
-    _yaml_available = True
 except ImportError:
-    _yaml_available = False
-
-
-logger = logging.getLogger(__name__)
+    yaml = None
 
 
 class YamlLoader(BaseLoader):
     """Loader for YAML files."""
+    file_extension = (".yaml", ".yml")
 
     def __init__(self, strict: bool = False):
         """Initialize the YamlLoader class."""
-        self._logger = logger
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
-        self.file_extension = (".yaml", ".yml")
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """
@@ -45,7 +40,7 @@ class YamlLoader(BaseLoader):
         :raises ParseError: For issues in parsing the YAML file.
         :raises Exception: For any other unexpected exceptions during the load process.
         """
-        if not _yaml_available:
+        if not yaml:
             raise ImportError("PyYAML package is not installed, cannot load YAML files.")
 
         filename = os.path.basename(filepath)

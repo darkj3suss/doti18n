@@ -10,9 +10,11 @@ from ..errors import (
     UnsupportedFileExtensionError,
 )
 from ..utils import _deep_merge
+from .base_loader import BaseLoader
 from .json_loader import JsonLoader
 from .xml_loader import XmlLoader
 from .yaml_loader import YamlLoader
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +26,11 @@ class Loader:
         """Initialize the Loader class."""
         self._logger = logger
         self._strict = strict
-        self._LOADERS = {
-            ".yaml": YamlLoader(strict),
-            ".yml": YamlLoader(strict),
-            ".json": JsonLoader(strict),
-            ".xml": XmlLoader(strict),
-        }
-        self.SUPPORTED_EXTENSIONS = self._get_supported_extensions()
 
-    def _get_supported_extensions(self):
+    @staticmethod
+    def get_supported_extensions():
         result = []
-        for loader in self._LOADERS.values():
+        for loader in BaseLoader._LOADERS.values():
             if type(loader.file_extension) is str:
                 result.append(loader.file_extension)
             else:
@@ -64,8 +60,8 @@ class Loader:
         if not extension:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
-        if loader := self._LOADERS.get(extension.lower()):
-            data = loader.load(filepath)
+        if loader := BaseLoader._LOADERS.get(extension.lower()):
+            data = loader(self._strict).load(filepath)
             if isinstance(data, list):
                 return self.load_multiple_locales(filename, data)
             elif data is None:
@@ -75,7 +71,7 @@ class Loader:
         else:
             return self._throw(
                 f"Unsupported file extension '{extension}' in '{filename}'. "
-                f"doti18n supports: {self.SUPPORTED_EXTENSIONS}",
+                f"doti18n supports: {self.get_supported_extensions()}",
                 UnsupportedFileExtensionError,
             )
 

@@ -11,7 +11,7 @@ class NoneWrapper:
     useful in localized applications or scenarios where attribute lookups might fail.
     """
 
-    __slots__ = ("_path", "_locale_code")
+    __slots__ = ("_path", "_locale_code", "_logger")
 
     def __init__(self, locale_code: str, path: str):
         """
@@ -21,16 +21,17 @@ class NoneWrapper:
         :param path: The file path or directory associated with the instance.
         """
         self._path = path
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._locale_code = locale_code
 
     def __call__(self, *args, **kwargs):
         """Log a warning and return None."""
-        logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
 
     def __getattr__(self, name: str):
         """Log a warning and return None."""
         full_key_path = ".".join([self._path, name])
-        logger.warning(
+        self._logger.warning(
             f"Locale '{self._locale_code}': key/index path '{full_key_path}' not found. " "None will be returned."
         )
         return NoneWrapper(self._locale_code, f"{self._path}.{name}")
@@ -45,17 +46,14 @@ class NoneWrapper:
 
     def __iter__(self):
         """Log a warning and return an empty iterator."""
-        logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
         return iter([])
 
     def __str__(self):
         """Log a warning and return None."""
-        logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
         return "None"
 
     def __repr__(self):
         """Return a string representation of the object."""
         return f"NoneWrapper('{self._locale_code}': {self._path})"
-
-
-logger = logging.getLogger(__name__)

@@ -12,17 +12,15 @@ from ..errors import (
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
-logger = logging.getLogger(__name__)
-
 
 class JsonLoader(BaseLoader):
     """Loader for JSON files."""
+    file_extension = ".json"
 
     def __init__(self, strict: bool = False):
         """Initialize the JsonLoader class."""
-        self._logger = logger
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
-        self.file_extension = ".json"
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """

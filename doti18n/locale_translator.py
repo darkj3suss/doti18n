@@ -16,8 +16,6 @@ from .wrapped import (
     StringWrapper,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class LocaleTranslator:
     """
@@ -48,7 +46,7 @@ class LocaleTranslator:
                        If False (default), it returns None and logs a warning.
         """
         self.locale_code = locale_code
-        self._logger = logger
+        self._logger = logging.getLogger(f"{self.__class__.__name__}['{locale_code}']")
         self._current_locale_data = current_locale_data if isinstance(current_locale_data, dict) else {}
         self._default_locale_data = default_locale_data if isinstance(default_locale_data, dict) else {}
         self._default_locale_code = default_locale_code
@@ -251,18 +249,17 @@ class LocaleTranslator:
             if self._strict:
                 if path and isinstance(path[-1], int):
                     raise IndexError(
-                        f"Locale '{self.locale_code}': Index out of bounds or path invalid "
-                        f"for path '{full_key_path}' "
+                        f"Index out of bounds or path invalid for path '{full_key_path}' "
                         f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}')."
                     )
                 else:
-                    raise AttributeError(
-                        f"Locale '{self.locale_code}': Strict mode error: Key/index path '{full_key_path}' not found "
+                    raise KeyError(
+                        f"Strict mode error: Key/index path '{full_key_path}' not found "
                         f"in translations (including default '{self._default_locale_code}')."
                     )
             else:
-                logger.warning(
-                    f"Locale '{self.locale_code}': key/index path '{full_key_path}' not found "
+                self._logger.warning(
+                    f"key/index path '{full_key_path}' not found "
                     f"in translations (including default '{self._default_locale_code}'). None will be returned."
                 )
                 return NoneWrapper(self.locale_code, full_key_path)
