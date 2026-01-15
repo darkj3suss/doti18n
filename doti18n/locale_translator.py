@@ -253,7 +253,7 @@ class LocaleTranslator:
                         f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}')."
                     )
                 else:
-                    raise AttributeError(
+                    raise KeyError(
                         f"Strict mode error: Key/index path '{full_key_path}' not found "
                         f"in translations (including default '{self._default_locale_code}')."
                     )
