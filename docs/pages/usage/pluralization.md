@@ -1,6 +1,7 @@
 Pluralization is powered by [Babel](https://babel.pocoo.org/) and follows [CLDR Plural Rules](https://cldr.unicode.org/index/cldr-spec/plural-rules).
 
 To use it:
+
 1.  Define the required forms (e.g., `one`, `few`, `many`, `other`) in your localization file.
 2.  Call the key as a function in Python, passing `count` as the first positional argument.
 
