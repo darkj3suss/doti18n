@@ -21,6 +21,13 @@ nav:
         - Custom Loaders: usage/custom_loaders.md
     - CLI:
         - Stub Generation: cli/stub.md
+    - Integrations:
+        - Setup: integrations/setup.md
+        - Telegram API: integrations/telegram_api.md
+        - Web:
+            - FastAPI: integrations/fastapi.md
+            - Django: integrations/django.md
+            - Flask: integrations/flask.md
 
 
 theme:

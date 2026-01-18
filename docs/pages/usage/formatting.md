@@ -4,24 +4,28 @@ You can even mix them in a single string (though consistency is highly recommend
 ### Supported Syntax
 
 **1. Python-style** (Curly braces `{}`)
-*   `"Hello, {}!"` (positional)
-*   `"Hello, {name}!"` (named)
-*   `"Balance: {count:.2f}"` (with format spec)
+
+- `"Hello, {}!"` (positional)
+- `"Hello, {name}!"` (named)
+- `"Balance: {count:.2f}"` (with format spec)
 
 **2. Shell-style** (Dollar sign `$`)
-*   `"Hello, $name!"`
-*   `"Hello, ${name}!"`
-*   `"Hello, $1!"` (positional/indexed)
+
+- `"Hello, $name!"`
+- `"Hello, ${name}!"`
+- `"Hello, $1!"` (positional/indexed)
 
 **3. C-style** (Percent sign `%`)
-*   `"Hello, %s!"` (positional)
-*   `"Hello, %(name)s!"` (named)
+
+- `"Hello, %s!"` (positional)
+- `"Hello, %(name)s!"` (named)
 
 ### Escaping
 To use literal characters that are reserved for formatting, double them:
-*   `{{` and `}}` → `{` and `}`
-*   `$$` → `$`
-*   `%%` → `%`
+
+- `{{` and `}}` → `{` and `}`
+- `$$` → `$`
+- `%%` → `%`
 
 !!! note
     Escaping is only processed when the string is **called** as a function. If accessed as a raw attribute, the string is returned "as-is" (with double characters intact).
