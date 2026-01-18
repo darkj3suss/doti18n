@@ -14,13 +14,20 @@ nav:
     - Home: index.md
     - Getting Started: getting_started.md
     - Usage:
-        - Supported Formats: usage/supported_formats.md
         - Configuration: usage/configuration.md
+        - Supported Formats: usage/supported_formats.md
         - Pluralization: usage/pluralization.md
         - Formatting: usage/formatting.md
         - Custom Loaders: usage/custom_loaders.md
     - CLI:
         - Stub Generation: cli/stub.md
+    - Integrations:
+        - Setup: integrations/setup.md
+        - Telegram API: integrations/telegram_api.md
+        - Web:
+            - FastAPI: integrations/fastapi.md
+            - Django: integrations/django.md
+            - Flask: integrations/flask.md
 
 
 theme:
