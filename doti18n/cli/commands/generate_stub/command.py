@@ -1,37 +1,30 @@
+import logging
 import os
 import sys
 from pathlib import Path
-import logging
 
 import doti18n
 from doti18n.loaders import Loader
 from doti18n.utils import _deep_merge
+
 from .generate_code import generate_code
 
 
 def register(subparsers):
+    """Register the 'stub' command to generate stubs."""
     parser = subparsers.add_parser("stub", help="Generate stubs")
     parser.add_argument(
         "locales_path",
         help="Path to locales directory",
         nargs="?",
     )
-    parser.add_argument(
-        "-l", "--lang",
-        dest="default_locale",
-        default="en",
-        help="Default locale code (default: en)"
-    )
-    parser.add_argument(
-        "--clean",
-        action="store_true",
-        help="Remove stubs instead of generating"
-    )
+    parser.add_argument("-l", "--lang", dest="default_locale", default="en", help="Default locale code (default: en)")
+    parser.add_argument("--clean", action="store_true", help="Remove stubs instead of generating")
     parser.set_defaults(func=handle)
 
 
 def _is_venv() -> bool:
-    if hasattr(sys, 'real_prefix'):
+    if hasattr(sys, "real_prefix"):
         return True
 
     else:
@@ -39,6 +32,7 @@ def _is_venv() -> bool:
 
 
 def handle(args):
+    """Handle the 'stub' command to generate or clean stubs."""
     package_path = Path(doti18n.__file__).parent.resolve()
 
     if args.clean:
@@ -66,7 +60,7 @@ def handle(args):
             "Use a virtual environment to avoid dependency issues.\n"
         )
         inp = input("Do you want to continue? (y/N)\n>>> ")
-        if inp.lower() != 'y':
+        if inp.lower() != "y":
             print("Aborting...")
             return
 

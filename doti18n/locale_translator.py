@@ -58,8 +58,8 @@ class LocaleTranslator:
         else:
             self._default_plural_func = self._load_plural_func(default_locale_code)
 
-    def _load_plural_func(self, code: str):
-        """Helper to safely load Babel plural function."""
+    def _load_plural_func(self, code: str) -> Callable[[int], str]:
+        """Help to safely load Babel plural function."""
         try:
             return Locale(code.replace("-", "_")).plural_form
         except Exception as e:

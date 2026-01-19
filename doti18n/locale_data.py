@@ -124,8 +124,8 @@ class LocaleData:
 
     def __iter__(self):
         """
-        Iterate over loaded locales.
-        Generates LocaleTranslator instances for each loaded locale.
+        Iterate over loaded locales and generates LocaleTranslator instances for each loaded locale.
+
         :return: LocaleTranslator
         """
         for locale_code in self.loaded_locales:

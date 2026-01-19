@@ -1,9 +1,8 @@
 import argparse
+import logging
 import sys
 
 from .commands.generate_stub import command as stub_cmd
-import logging
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -12,6 +11,7 @@ logging.basicConfig(
 
 
 def main():
+    """Entry point for the doti18n CLI."""
     parser = argparse.ArgumentParser(prog="doti18n")
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 

@@ -10,11 +10,12 @@ from .base_loader import BaseLoader
 try:
     import yaml
 except ImportError:
-    yaml = None
+    yaml = None  # type: ignore
 
 
 class YamlLoader(BaseLoader):
     """Loader for YAML files."""
+
     file_extension = (".yaml", ".yml")
 
     def __init__(self, strict: bool = False):
@@ -71,7 +72,7 @@ class YamlLoader(BaseLoader):
 
         return None
 
-    def _validate(self, filepath: str, data: dict, path: Optional[List[str]] = None):
+    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
         path = path or []
         for key in data.keys():
             if not isinstance(key, str):

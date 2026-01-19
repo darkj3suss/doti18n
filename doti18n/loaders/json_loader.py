@@ -15,6 +15,7 @@ from .base_loader import BaseLoader
 
 class JsonLoader(BaseLoader):
     """Loader for JSON files."""
+
     file_extension = ".json"
 
     def __init__(self, strict: bool = False):
@@ -65,7 +66,7 @@ class JsonLoader(BaseLoader):
 
         return None
 
-    def _validate(self, filepath: str, data: dict, path: Optional[List[str]] = None):
+    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
         path = path or []
         for key in data.keys():
             if not isinstance(key, str):

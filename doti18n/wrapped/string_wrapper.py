@@ -1,3 +1,4 @@
+# ruff: noqa: C901
 import re
 from typing import Any, Tuple
 
@@ -35,10 +36,11 @@ PLACEHOLDER_REGEX = re.compile(
             )
         )
     """,
-    re.VERBOSE
+    re.VERBOSE,
 )
 
 
+# noqa: C901
 class StringWrapper(str):
     """A wrapper for a string value, which allows you to format strings by calling magic function `__call__`."""
 
@@ -46,8 +48,9 @@ class StringWrapper(str):
 
     def __call__(self, *args, **kwargs) -> str:
         """
-        Callable class method to format a string based on the presence of specific
-        formatting placeholders. This method checks for particular placeholders such
+        Callable class method to format a string based on the presence of specific formatting placeholders.
+
+        This method checks for particular placeholders such
         as '%' or '$' within the string and processes the string accordingly using
         the corresponding formatter method or the default format method.
 
@@ -105,17 +108,17 @@ class StringWrapper(str):
             """Replace placeholders with their corresponding values."""
             groups = match.groupdict()
 
-            if groups['py_escape']:
-                return groups['py_escape'][0]
-            if groups['c_escape']:
-                return '%'
-            if groups['shell_escape']:
-                return '$'
+            if groups["py_escape"]:
+                return groups["py_escape"][0]  # type: ignore
+            if groups["c_escape"]:
+                return "%"
+            if groups["shell_escape"]:
+                return "$"
 
             value: Any = None
             is_found = False
-            if groups['python']:
-                key = groups['python_key']
+            if groups["python"]:
+                key = groups["python_key"]
                 if key.isdigit():
                     index = int(key)
                     if index < len(args):
@@ -127,10 +130,10 @@ class StringWrapper(str):
                 else:
                     value, is_found = get_next_seq_arg()
 
-            elif groups['c_style']:
-                if groups['c_format'] == '%':
-                    return '%'
-                key, index_str = groups['c_key'], groups['c_index']
+            elif groups["c_style"]:
+                if groups["c_format"] == "%":
+                    return "%"
+                key, index_str = groups["c_key"], groups["c_index"]
                 if index_str:
                     index = int(index_str)
                     if 0 <= index < len(args):
@@ -142,8 +145,8 @@ class StringWrapper(str):
                 else:
                     value, is_found = get_next_seq_arg()
 
-            elif groups['shell']:
-                key = groups['shell_braced_key'] or groups['shell_simple_key']
+            elif groups["shell"]:
+                key = groups["shell_braced_key"] or groups["shell_simple_key"]
                 if key:
                     if key.isdigit():
                         index = int(key)
@@ -158,18 +161,17 @@ class StringWrapper(str):
                 return ""
 
             try:
-                if groups['python']:
-                    format_spec = groups['python_format'] or ''
+                if groups["python"]:
+                    format_spec = groups["python_format"] or ""
                     return f"{{value{format_spec}}}".format(value=value)
-                if groups['c_style']:
-                    return f"%{groups['c_format']}" % value
-                if groups['shell']:
+                if groups["c_style"]:
+                    return f"%{groups['c_format']}" % value  # type: ignore
+                if groups["shell"]:
                     return str(value)
 
             except (ValueError, TypeError):
                 return str(value)
 
-            return match.group()
+            return match.group()  # type: ignore
 
-        # type: str
-        return PLACEHOLDER_REGEX.sub(replacer, self)
+        return PLACEHOLDER_REGEX.sub(replacer, self)  # type: ignore

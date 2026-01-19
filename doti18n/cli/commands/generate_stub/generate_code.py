@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+from textwrap import indent
+from typing import Union
+
+from doti18n.utils import _is_plural_dict
+
 from .formatted_string_stub import generate_stub_signature
 from .plural_stub import generate_plural_stub
-from doti18n.utils import _is_plural_dict
-from textwrap import indent
 
-
-LIBRARY_CODE = \
-    """
+LIBRARY_CODE = """
 class LocaleTranslator:
     def get(self, name: str) -> Any: ...
 
@@ -47,7 +48,9 @@ def fill_stub_namespace(locale_data: dict, element: StubNamespace):
                     if _is_plural_dict(v):
                         element.args[key].append(v)
                     else:
-                        element.args[key].append(fill_stub_namespace(v, StubNamespace(f"{element.name}_{key}_{n}", {}, {})))
+                        element.args[key].append(
+                            fill_stub_namespace(v, StubNamespace(f"{element.name}_{key}_{n}", {}, {}))
+                        )
                 else:
                     element.args[key].append(v)
         else:
@@ -78,7 +81,9 @@ def normalize_name(name: str) -> str:
     return "Namespace" + name.replace("_", " ").replace("-", " ").title().replace(" ", "").strip()
 
 
-def generate_class(cls: StubLocale | StubNamespace):
+# ruff: noqa C901
+def generate_class(cls: Union[StubLocale, StubNamespace]):
+    """Generate stub class code for a given StubLocale or StubNamespace."""
     lines = []
 
     if isinstance(cls, StubNamespace):
@@ -102,7 +107,7 @@ def generate_class(cls: StubLocale | StubNamespace):
         if isinstance(value, dict):
             if _is_plural_dict(value):
                 stub = generate_plural_stub(key, value)
-                lines.append(indent(stub.rstrip(), '    '))
+                lines.append(indent(stub.rstrip(), "    "))
             else:
                 lines.append(f"    {key}: dict = {repr(value)}")
             continue
@@ -112,7 +117,7 @@ def generate_class(cls: StubLocale | StubNamespace):
                 if isinstance(item, dict) and _is_plural_dict(item):
                     stub_name = f"{key}_{i}"
                     stub = generate_plural_stub(stub_name, item)
-                    lines.append(indent(stub.rstrip(), '    '))
+                    lines.append(indent(stub.rstrip(), "    "))
             lines.append(f"    {key}: list = {repr(value)}")
             continue
 
@@ -126,10 +131,12 @@ def generate_class(cls: StubLocale | StubNamespace):
 
 
 def generate_code(data: dict, default_locale: str = "en") -> str:
+    """Generate stub code for locale data."""
     global LIBRARY_CODE
     code = []
     stub_classes = generate_stub_classes(data)
     for cls in stub_classes:
+
         def process_childs(stub_namespace: StubNamespace):
             nonlocal code
             for value in stub_namespace.childs.values():
@@ -147,8 +154,14 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
             process_childs(child)
 
         code.append(generate_class(cls))
-        LIBRARY_CODE += f"\n    @overload\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
+        LIBRARY_CODE += (
+            f"\n    @overload"
+            f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
+        )
 
-    LIBRARY_CODE += f"\n    @overload\n    def __getitem__(self, locale_code: str) -> {default_locale.capitalize()}Locale: ...\n"
+    LIBRARY_CODE += (
+        f"\n    @overload"
+        f"\n    def __getitem__(self, locale_code: str) -> {default_locale.capitalize()}Locale: ...\n"
+    )
     header = "from typing import Any, overload, Optional, Union, Literal, List\n\n"
     return header + "".join(code) + LIBRARY_CODE

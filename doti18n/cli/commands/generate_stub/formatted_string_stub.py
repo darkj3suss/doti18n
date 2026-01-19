@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import Tuple, Set, Any
 
 PLACEHOLDER_REGEX = re.compile(
     r"""
@@ -35,12 +35,14 @@ PLACEHOLDER_REGEX = re.compile(
             )
         )
     """,
-    re.VERBOSE
+    re.VERBOSE,
 )
 
 
+# ruff: noqa C901
 def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
-    required_kwargs = set()
+    """Generate a stub signature for a formatted string entry."""
+    required_kwargs: Set[Any] = set()
     used_indices = set()
     seq_cursor = 0
     matches = PLACEHOLDER_REGEX.finditer(string)
@@ -48,10 +50,10 @@ def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
     for match in matches:
         groups = match.groupdict()
 
-        if groups['py_escape'] or groups['c_escape'] or groups['shell_escape']:
+        if groups["py_escape"] or groups["c_escape"] or groups["shell_escape"]:
             continue
 
-        if groups['c_style'] and groups['c_format'] == '%':
+        if groups["c_style"] and groups["c_format"] == "%":
             continue
 
         is_named = False
@@ -59,8 +61,8 @@ def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
         index = None
         is_sequential = False
 
-        if groups['python']:
-            raw_key = groups['python_key']
+        if groups["python"]:
+            raw_key = groups["python_key"]
             if raw_key:
                 if raw_key.isdigit():
                     index = int(raw_key)
@@ -70,9 +72,9 @@ def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
             else:
                 is_sequential = True
 
-        elif groups['c_style']:
-            c_key = groups['c_key']
-            c_index = groups['c_index']
+        elif groups["c_style"]:
+            c_key = groups["c_key"]
+            c_index = groups["c_index"]
 
             if c_index:
                 index = int(c_index)
@@ -82,8 +84,8 @@ def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
             else:
                 is_sequential = True
 
-        elif groups['shell']:
-            s_key = groups['shell_braced_key'] or groups['shell_simple_key']
+        elif groups["shell"]:
+            s_key = groups["shell_braced_key"] or groups["shell_simple_key"]
             if s_key:
                 if s_key.isdigit():
                     index = int(s_key)

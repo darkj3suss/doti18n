@@ -11,10 +11,11 @@ from ..errors import (
 )
 from ..utils import _deep_merge
 from .base_loader import BaseLoader
+
+# ruff: noqa F401
 from .json_loader import JsonLoader
 from .xml_loader import XmlLoader
 from .yaml_loader import YamlLoader
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class Loader:
 
     @staticmethod
     def get_supported_extensions():
+        """Return a list of supported file extensions."""
         result = []
         for loader in BaseLoader._LOADERS.values():
             if type(loader.file_extension) is str:
@@ -61,7 +63,7 @@ class Loader:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
         if loader := BaseLoader._LOADERS.get(extension.lower()):
-            data = loader(self._strict).load(filepath)
+            data: Union[dict[Any, Any], list[dict[Any, Any]]] = loader(self._strict).load(filepath)
             if isinstance(data, list):
                 return self.load_multiple_locales(filename, data)
             elif data is None:
