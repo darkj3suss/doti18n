@@ -12,7 +12,7 @@
 
 ## Overview
 
-**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales.en.messages.error`.
+**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales["en"]messages.error`.
 
 It focuses on **Developer Experience (DX)** by providing a CLI tool to generate `.pyi` stubs. This enables **IDE autocompletion** and allows static type checkers (mypy, pyright) to catch missing keys at build time.
 
