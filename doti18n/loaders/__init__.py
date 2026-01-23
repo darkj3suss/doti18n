@@ -25,20 +25,13 @@ class Loader:
 
     def __init__(self, strict: bool = False):
         """Initialize the Loader class."""
+        self.loaders = {ext: cls_loader(strict) for ext, cls_loader in BaseLoader._LOADERS.items()}
         self._logger = logger
         self._strict = strict
 
-    @staticmethod
-    def get_supported_extensions():
+    def get_supported_extensions(self) -> Tuple[str]:
         """Return a list of supported file extensions."""
-        result = []
-        for loader in BaseLoader._LOADERS.values():
-            if type(loader.file_extension) is str:
-                result.append(loader.file_extension)
-            else:
-                result.extend(loader.file_extension)
-
-        return result
+        return tuple(self.loaders.keys())
 
     def load(self, filepath: Union[str, Path]) -> Union[Dict, List[Tuple[str, dict]]]:
         """
