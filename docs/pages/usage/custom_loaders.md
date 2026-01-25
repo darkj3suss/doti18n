@@ -7,7 +7,7 @@ To create a loader, define a class that inherits from `doti18n.loaders.BaseLoade
 2.  **`__init__`**: Must accept a `strict: bool` argument.
 3.  **`load` method**: Must read the file and return data in one of these formats:
     - **Single locale:** `{ "en": { ... } }` (derived from filename).
-    - **Multilocale:** `[ { "en": {...} }, { "fr": {...} } ]`.
+    - **Multilocale:** `[ {...}, {...} ]`. (with key `locale` inside each dict).
 
 !!! warning "Execution order"
     If you initialize `LocaleData` with `preload=True`, you **must** define or import your custom loader **before** creating the `LocaleData` instance.
