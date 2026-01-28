@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from babel import Locale
@@ -184,6 +185,8 @@ class LocaleTranslator:
         elif isinstance(value, list):
             return LocaleList(value, path, self)
         else:
+            if callable(value):
+                return partial(value, self)
             return value
 
     def _create_plural_handler(
