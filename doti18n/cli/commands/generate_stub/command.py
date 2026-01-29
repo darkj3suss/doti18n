@@ -10,6 +10,9 @@ from doti18n.utils import _deep_merge
 from .generate_code import generate_code
 
 
+logger = logging.getLogger("doti18n.stub")
+
+
 def register(subparsers):
     """Register the 'stub' command to generate stubs."""
     parser = subparsers.add_parser("stub", help="Generate stubs")
@@ -40,21 +43,21 @@ def handle(args):
         try:
             if target_path.exists():
                 target_path.unlink()
-                logging.info("Stubs cleaned successfully!")
+                logger.info("Stubs cleaned successfully!")
             else:
-                logging.info("No stubs to clean.")
+                logger.info("No stubs to clean.")
         except PermissionError:
-            logging.error(f"Permission denied when trying to delete '{target_path}'.")
+            logger.error(f"Permission denied when trying to delete '{target_path}'.")
 
         return
 
     if not args.locales_path:
-        logging.error("No locales path provided. Use --help for more information.")
+        logger.error("No locales path provided. Use --help for more information.")
         return
 
     locales_path = Path(args.locales_path)
     if not _is_venv():
-        logging.warning(
+        logger.warning(
             "You are running this command outside a virtual environment.\n"
             "It`s highly not recommended to do this.\n"
             "Use a virtual environment to avoid dependency issues.\n"
@@ -75,7 +78,7 @@ def handle(args):
         with open(target_path, "w", encoding="utf-8") as f:
             f.write(stub_code)
     except PermissionError:
-        logging.error(f"Permission denied when trying to write to '{target_path}'.")
+        logger.error(f"Permission denied when trying to write to '{target_path}'.")
         return
 
-    logging.info("Stubs generated successfully!")
+    logger.info("Stubs generated successfully!")

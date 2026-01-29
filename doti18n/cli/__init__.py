@@ -1,13 +1,23 @@
 import argparse
 import logging
+
+import colorlog
 import sys
 
 from .commands.generate_stub import command as stub_cmd
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(levelname)s]: %(message)s",
-)
+def setup_logging():
+    colorlog.basicConfig(
+        level=logging.INFO,
+        format="%(log_color)s[%(levelname)s]%(reset)s %(name)s: %(cyan)s%(message)s",
+        log_colors={
+            "DEBUG": "bold_cyan",
+            "INFO": "bold_green",
+            "WARNING": "bold_yellow",
+            "ERROR": "bold_red",
+            "CRITICAL": "bold_red,bg_white",
+        },
+    )
 
 
 def main():
@@ -21,5 +31,6 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    setup_logging()
     args = parser.parse_args()
     args.func(args)
