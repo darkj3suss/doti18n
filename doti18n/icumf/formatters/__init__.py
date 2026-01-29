@@ -1,9 +1,11 @@
 from .base import BaseFormatter
 from .html import HTMLFormatter
 from .markdown import MarkdownFormatter
-from .number import CountFormatter
+from .count import CountFormatter
 from .plural import PluralFormatter
 from .select import SelectFormatter
+from .selectordinal import SelectordinalFormatter
+from .date import DateFormatter
 
 __all__ = [
     "BaseFormatter",
@@ -12,4 +14,6 @@ __all__ = [
     "CountFormatter",
     "PluralFormatter",
     "SelectFormatter",
+    "SelectordinalFormatter",
+    "DateFormatter",
 ]

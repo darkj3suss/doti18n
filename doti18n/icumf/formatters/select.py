@@ -33,15 +33,16 @@ class SelectFormatter(BaseFormatter):
             raise TypeError("SelectFormatter can only process MessageNode instances.")
 
         options = node.options
-        if not (option := kwargs.get(node.name)):
+        option = kwargs.get(node.name, None)
+        if option not in options:
             if "other" in options:
                 option = "other"
                 self._logger.warning(
-                    f"Select formatter: No option provided for '{node.name}'. Fallback to 'other' option."
+                    f"No valid option provided for '{node.name}'. Fallback to 'other' option."
                 )
             else:
                 return self._throw(
-                    f"Select formatter: No option provided for '{node.name}' " f"and 'other' option is missing.",
+                    f"No option provided for '{node.name}' " f"and 'other' option is missing.",
                     ValueError,
                 )
 

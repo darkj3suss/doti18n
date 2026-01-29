@@ -1,6 +1,7 @@
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Callable, List
+from functools import lru_cache
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 from .formatters import *
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
@@ -17,11 +18,19 @@ html_pattern = re.compile(r"<\s*\w+.*?>")
 class ICUMF:
     """Main class for ICUMF formatting."""
 
-    def __init__(self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, **kwargs):
+    def __init__(
+            self,
+            strict: bool = True,
+            tag_formatter: type[BaseFormatter] = HTMLFormatter,
+            cache_size: int = 1024,
+            **kwargs
+    ):
         """
         Initialize the ICUMF formatter with available formatters.
 
         :param strict: Whether to enforce strict formatting rules.
+        :param tag_formatter: The formatter class to use for tags.
+        :param cache_size: The size of the cache for rendered entries.
         :param kwargs: Additional keyword arguments for ICUMF parser configuration.
         """
         self.formatters = {}
@@ -34,6 +43,7 @@ class ICUMF:
         self.tag_formatter = tag_formatter(strict)
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render)
 
     def parse(self, string: str) -> Any:
         """
@@ -47,6 +57,7 @@ class ICUMF:
         if not isinstance(string, str):
             return string
 
+        # explicit ICUMF
         if string.startswith("icu:"):
             string = string[4:]
             return self.compile(self.parser.parse(string))
@@ -69,7 +80,16 @@ class ICUMF:
         :param nodes: The list of parsed nodes.
         :return: A callable function that formats strings based on the nodes.
         """
-        return lambda t, **kwargs: self._render_nodes(t, nodes, **kwargs)
+        nodes: Tuple = tuple(nodes)
+        return lambda t, **kwargs: self._render_entry(t, nodes, **kwargs)
+
+    def _render_entry(self, t: "LocaleTranslator", nodes: Tuple[Node], **kwargs) -> str:
+        frozen_kwargs = tuple(sorted(kwargs.items())) if kwargs else ()
+        return self._cached_render(t, nodes, frozen_kwargs)
+
+    def _cached_render(self, t: "LocaleTranslator", nodes: Tuple[Node], frozen_kwargs: Tuple[Tuple[str, Any], ...]) -> str:
+        kwargs = dict(frozen_kwargs)
+        return self._render_nodes(t, list(nodes), **kwargs)
 
     def _render_nodes(self, t: "LocaleTranslator", nodes: List[Node], **kwargs) -> str:
         text = []
@@ -80,6 +100,12 @@ class ICUMF:
 
             elif isinstance(node, (FormatNode, MessageNode)):
                 if not (formatter := self.formatters.get(node.type)):
+                    if isinstance(node, FormatNode) and not node.style:
+                        # treat as simple variable replacement
+                        value = kwargs.get(node.name, "")
+                        text.append(str(value))
+                        continue
+
                     self._throw(
                         f"Unknown formatter '{node.type}'.",
                         ValueError,

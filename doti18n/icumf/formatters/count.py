@@ -34,7 +34,7 @@ class CountFormatter(BaseFormatter):
 
         count = kwargs.get(node.name, "")
         if not count and self._strict:
-            raise ValueError(f"count formatter: No value provided for '{node.name}'.")
+            raise ValueError(f"No value provided for '{node.name}'.")
 
         if not isinstance(count, str):
             count = str(count)

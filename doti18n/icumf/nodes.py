@@ -2,14 +2,14 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class Node:
     """Base class for all node types in the message AST."""
 
     pass
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class TextNode(Node):
     """Node for plain text segments in the message."""
 
@@ -20,7 +20,7 @@ class TextNode(Node):
         return f"Text('{self.value}')"
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class FormatNode(Node):
     """Node for variable formatting. Also for hash(#) inside plural messages."""
 
@@ -39,7 +39,7 @@ class FormatNode(Node):
         return f"Format({', '.join(parts)})"
 
 
-@dataclass
+@dataclass(slots=True, eq=False)
 class MessageNode(Node):
     """Node for complex message structures like plural, selectordinal, select, etc."""
 
@@ -53,7 +53,7 @@ class MessageNode(Node):
         return f"Message({self.name}, {self.type}, options={list(self.options.keys())})"
 
 
-@dataclass
+@dataclass(slots=True, eq=False)
 class TagNode(Node):
     """Node for XML/HTML-like tags within the message."""
 
