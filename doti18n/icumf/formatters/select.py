@@ -45,8 +45,13 @@ class SelectFormatter(BaseFormatter):
                     f"No option provided for '{node.name}' " f"and 'other' option is missing.",
                     ValueError,
                 )
+        if not (result := options.get(option, None)):
+            return self._throw(
+                f"No message found for option '{option}' in '{node.name}'.",
+                ValueError,
+            )
 
-        return options[option]
+        return result
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> list:
         if self._strict:

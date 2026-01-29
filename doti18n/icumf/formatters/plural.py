@@ -52,7 +52,13 @@ class PluralFormatter(BaseFormatter):
             )
             option = "other"
 
-        return options[option]
+        if not (result := options.get(option, None)):
+            return self._throw(
+                f"No message found for option '{option}' in '{node.name}'.",
+                ValueError,
+            )
+
+        return result
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> list:
         if self._strict:
