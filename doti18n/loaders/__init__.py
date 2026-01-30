@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union, Optional
 
 from ..errors import (
     InvalidLocaleDocumentError,
@@ -9,12 +9,14 @@ from ..errors import (
     MissingFileExtensionError,
     UnsupportedFileExtensionError,
 )
+from ..icumf import ICUMF
 from ..utils import _deep_merge
 from .base_loader import BaseLoader
+
+# ruff: noqa F401
 from .json_loader import JsonLoader
 from .xml_loader import XmlLoader
 from .yaml_loader import YamlLoader
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +24,18 @@ logger = logging.getLogger(__name__)
 class Loader:
     """Loader class for loading locale files."""
 
-    def __init__(self, strict: bool = False):
+    def __init__(self, strict: bool = False, icumf: Union[Optional[ICUMF], bool] = None):
         """Initialize the Loader class."""
+        if icumf is None:
+            icumf = ICUMF(strict)
+        self.loaders = {ext: cls_loader(strict) for ext, cls_loader in BaseLoader._LOADERS.items()}
         self._logger = logger
         self._strict = strict
+        self._icumf = icumf
 
-    @staticmethod
-    def get_supported_extensions():
-        result = []
-        for loader in BaseLoader._LOADERS.values():
-            if type(loader.file_extension) is str:
-                result.append(loader.file_extension)
-            else:
-                result.extend(loader.file_extension)
-
-        return result
+    def get_supported_extensions(self) -> Tuple[str]:
+        """Return a list of supported file extensions."""
+        return tuple(self.loaders.keys())
 
     def load(self, filepath: Union[str, Path]) -> Union[Dict, List[Tuple[str, dict]]]:
         """
@@ -60,14 +59,18 @@ class Loader:
         if not extension:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
-        if loader := BaseLoader._LOADERS.get(extension.lower()):
-            data = loader(self._strict).load(filepath)
+        if loader := self.loaders.get(extension.lower()):
+            data: Union[dict[Any, Any], list[dict[Any, Any]]] = loader.load(filepath)
             if isinstance(data, list):
-                return self.load_multiple_locales(filename, data)
-            elif data is None:
-                return {}
+                locales = self._load_multiple_locales(filename, data)
+                for _, locale in locales:
+                    self._process_data(locale)
+
+                return locales
             else:
+                self._process_data(data)
                 return data
+
         else:
             return self._throw(
                 f"Unsupported file extension '{extension}' in '{filename}'. "
@@ -75,7 +78,29 @@ class Loader:
                 UnsupportedFileExtensionError,
             )
 
-    def load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> List[Tuple[str, Dict[str, Any]]]:
+    def _process_data(self, data: Dict[Any, Any]):
+        """Recursively process data to parse strings using ICUMF."""
+        if not (isinstance(self._icumf, ICUMF)):
+            return
+
+        for key, value in data.items():
+            if isinstance(value, dict):
+                self._process_data(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        self._process_data(item)
+                    elif isinstance(item, str):
+                        processed_item = self._icumf.parse(item)
+                        index = value.index(item)
+                        value[index] = processed_item
+            elif isinstance(value, str):
+                processed_value = self._icumf.parse(value)
+                data[key] = processed_value
+            else:
+                continue
+
+    def _load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> List[Tuple[str, Dict[str, Any]]]:
         """
         Process and validate multiple locale configurations.
 

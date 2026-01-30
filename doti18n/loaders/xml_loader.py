@@ -16,6 +16,7 @@ from .base_loader import BaseLoader
 
 class XmlLoader(BaseLoader):
     """Loader for XML files."""
+
     file_extension = ".xml"
 
     def __init__(self, strict: bool = False):
@@ -105,7 +106,7 @@ class XmlLoader(BaseLoader):
 
         return result
 
-    def _validate(self, filepath: str, data: dict, path: Optional[List[str]] = None):
+    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
         path = path or []
         for key in data.keys():
             if not isinstance(key, str):

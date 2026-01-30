@@ -18,6 +18,7 @@ nav:
         - Supported Formats: usage/supported_formats.md
         - Pluralization: usage/pluralization.md
         - Formatting: usage/formatting.md
+        - ICU Message Format: usage/icumf.md
         - Custom Loaders: usage/custom_loaders.md
     - CLI:
         - Stub Generation: cli/stub.md

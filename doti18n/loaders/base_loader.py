@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union
 
 class BaseLoader(ABC):
     """Base class for file loaders."""
+
     _LOADERS: Dict = {}
     file_extension: Union[tuple, str]
 
@@ -14,6 +15,7 @@ class BaseLoader(ABC):
         raise NotImplementedError
 
     def __init_subclass__(cls, **kwargs):
+        """Register subclasses based on their file extensions."""
         super.__init_subclass__()
 
         if isinstance(cls.file_extension, (list, tuple, set)):

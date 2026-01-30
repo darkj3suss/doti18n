@@ -15,11 +15,18 @@ class LocaleData:
     Supports a 'strict' mode which is passed to created LocaleTranslator instances.
     """
 
-    def __init__(self, locales_dir: str, default_locale: str = "en", strict: bool = False, preload: bool = True):
+    def __init__(
+        self,
+        path: str,
+        default_locale: str = "en",
+        strict: bool = False,
+        preload: bool = True,
+        loader: Optional[Loader] = None,
+    ):
         """
         Initialize the LocaleData manager.
 
-        :param locales_dir: The path to the directory containing YAML locale files.
+        :param path: The path to the directory containing YAML locale files.
         :param default_locale: The code of the default locale. (default: 'en')
         :param strict: If `True`, all created LocaleTranslator instances will be in strict mode.
                        That means that where you've gotten warnings before, you'll get exceptions.
@@ -29,10 +36,13 @@ class LocaleData:
                         Instead, you can use LocaleData.get("filename") to load individual locale.
                         (default: True)
         """
-        self.locales_dir = locales_dir
+        if not loader:
+            loader = Loader(strict)
+
+        self.path = path
         self.default_locale = default_locale.lower()
         self._logger = logging.getLogger(f"{self.__class__.__name__}")
-        self._loader = Loader(strict)
+        self._loader = loader
         self._strict = strict
         self._raw_translations: Dict[str, Optional[Dict[str, Any]]] = {}
         self._locale_translators_cache: Dict[str, LocaleTranslator] = {}
@@ -40,18 +50,16 @@ class LocaleData:
             self._load_all_translations()
 
     def _load_all_translations(self):
-        if not os.path.exists(self.locales_dir):
-            self._throw(f"Locale directory '{self.locales_dir}' does not exist.", FileNotFoundError)
+        if not os.path.exists(self.path):
+            self._throw(f"Locale directory '{self.path}' does not exist.", FileNotFoundError)
             return
 
-        for filename in os.listdir(self.locales_dir):
-            data = self._loader.load(os.path.join(self.locales_dir, filename))
+        for filename in os.listdir(self.path):
+            data = self._loader.load(os.path.join(self.path, filename))
             self._process_data(data)
 
         if not any(self._raw_translations.values()):
-            self._throw(
-                f"No localization files found or successfully loaded from '{self.locales_dir}'.", LocaleNotLoadedError
-            )
+            self._throw(f"No localization files found or successfully loaded from '{self.path}'.", LocaleNotLoadedError)
 
         default_data = self._raw_translations.get(self.default_locale)
         if not isinstance(default_data, dict):
@@ -124,8 +132,8 @@ class LocaleData:
 
     def __iter__(self):
         """
-        Iterate over loaded locales.
-        Generates LocaleTranslator instances for each loaded locale.
+        Iterate over loaded locales and generates LocaleTranslator instances for each loaded locale.
+
         :return: LocaleTranslator
         """
         for locale_code in self.loaded_locales:
@@ -203,7 +211,7 @@ class LocaleData:
 
         found_path = None
         for extension in self._loader.get_supported_extensions():
-            filepath = os.path.join(self.locales_dir, f"{locale_code}{extension}")
+            filepath = os.path.join(self.path, f"{locale_code}{extension}")
             if os.path.exists(filepath):
                 found_path = filepath
                 break

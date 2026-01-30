@@ -1,8 +1,11 @@
 from typing import Any
+
 from .formatted_string_stub import PLACEHOLDER_REGEX
 
 
+# ruff: noqa C901
 def generate_plural_stub(key: str, value: Any) -> str:
+    """Generate a stub signature for a pluralizable string entry."""
     if not isinstance(value, dict):
         return f"{key}: Any = {repr(value)}"
 
@@ -16,10 +19,10 @@ def generate_plural_stub(key: str, value: Any) -> str:
         for match in matches:
             groups = match.groupdict()
 
-            if groups.get('py_escape') or groups.get('c_escape') or groups.get('shell_escape'):
+            if groups.get("py_escape") or groups.get("c_escape") or groups.get("shell_escape"):
                 continue
 
-            if groups.get('c_style') and groups.get('c_format') == '%':
+            if groups.get("c_style") and groups.get("c_format") == "%":
                 continue
 
             is_named = False
@@ -27,8 +30,8 @@ def generate_plural_stub(key: str, value: Any) -> str:
             index = None
             is_sequential = False
 
-            if groups.get('python'):
-                raw_key = groups.get('python_key')
+            if groups.get("python"):
+                raw_key = groups.get("python_key")
                 if raw_key:
                     if raw_key.isdigit():
                         index = int(raw_key)
@@ -38,9 +41,9 @@ def generate_plural_stub(key: str, value: Any) -> str:
                 else:
                     is_sequential = True
 
-            elif groups.get('c_style'):
-                c_key = groups.get('c_key')
-                c_index = groups.get('c_index')
+            elif groups.get("c_style"):
+                c_key = groups.get("c_key")
+                c_index = groups.get("c_index")
                 if c_index:
                     index = int(c_index)
                 elif c_key:
@@ -49,8 +52,8 @@ def generate_plural_stub(key: str, value: Any) -> str:
                 else:
                     is_sequential = True
 
-            elif groups.get('shell'):
-                s_key = groups.get('shell_braced_key') or groups.get('shell_simple_key')
+            elif groups.get("shell"):
+                s_key = groups.get("shell_braced_key") or groups.get("shell_simple_key")
                 if s_key:
                     if s_key.isdigit():
                         index = int(s_key)
@@ -98,7 +101,7 @@ def generate_plural_stub(key: str, value: Any) -> str:
     # all docstring lines will align equally under the method body
     indented_doc_lines = ["    " + line for line in doc_lines]
     if indented_doc_lines:
-        doc_block = "    \"\"\"\n" + "\n".join(indented_doc_lines) + "\n    \"\"\""
+        doc_block = '    """\n' + "\n".join(indented_doc_lines) + '\n    """'
     else:
         doc_block = ""
 

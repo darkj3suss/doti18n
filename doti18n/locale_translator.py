@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from babel import Locale
@@ -58,8 +59,10 @@ class LocaleTranslator:
         else:
             self._default_plural_func = self._load_plural_func(default_locale_code)
 
-    def _load_plural_func(self, code: str):
-        """Helper to safely load Babel plural function."""
+        self._ordinal_func = Locale(locale_code.replace("-", "_")).ordinal_form
+
+    def _load_plural_func(self, code: str) -> Callable[[int], str]:
+        """Help to safely load Babel plural function."""
         try:
             return Locale(code.replace("-", "_")).plural_form
         except Exception as e:
@@ -184,6 +187,8 @@ class LocaleTranslator:
         elif isinstance(value, list):
             return LocaleList(value, path, self)
         else:
+            if callable(value):
+                return partial(value, self)
             return value
 
     def _create_plural_handler(

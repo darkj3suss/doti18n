@@ -26,7 +26,10 @@ class NoneWrapper:
 
     def __call__(self, *args, **kwargs):
         """Log a warning and return None."""
-        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(
+            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+        )
+        return None
 
     def __getattr__(self, name: str):
         """Log a warning and return None."""
@@ -46,12 +49,16 @@ class NoneWrapper:
 
     def __iter__(self):
         """Log a warning and return an empty iterator."""
-        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(
+            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+        )
         return iter([])
 
     def __str__(self):
         """Log a warning and return None."""
-        self._logger.warning(f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned.")
+        self._logger.warning(
+            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+        )
         return "None"
 
     def __repr__(self):

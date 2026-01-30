@@ -11,7 +11,7 @@ If you don't read the [setup instruction](./setup.md), please do so first.
     i18n = LocaleData("locales")
     pattern = re.compile(r"[a-z]{2}")
     
-    class Doti18nMiddleware:
+    class I18nMiddleware:
         def __init__(self, get_response):
             self.get_response = get_response
     

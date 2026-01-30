@@ -12,7 +12,7 @@
 
 ## Overview
 
-**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales.en.messages.error`.
+**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales["en"].messages.error`.
 
 It focuses on **Developer Experience (DX)** by providing a CLI tool to generate `.pyi` stubs. This enables **IDE autocompletion** and allows static type checkers (mypy, pyright) to catch missing keys at build time.
 
@@ -20,7 +20,8 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
 
 *   **Dot-Notation:** Access nested keys via attributes (`data.key`) and lists via indices (`items[0]`).
 *   **Type Safety:** Generate stubs to get full IDE support and catch typos instantly.
-*   **Pluralization:** robust support powered by [Babel](https://babel.pocoo.org/).
+*   **Advanced ICUMF:** Full support for **ICU Message Format** including nested `select`, `plural`, and custom formatters.
+*   **Pluralization:** Robust support powered by [Babel](https://babel.pocoo.org/).
 *   **Format Agnostic:** Supports YAML, JSON, and XML out of the box.
 *   **Safety Modes:** 
     *   **Strict:** Raises exceptions for missing keys (good for dev/test).
@@ -48,9 +49,18 @@ farewell: "Goodbye $name!"
 items:
     - name: "Item 1"
     - name: "Item 2"
+# Basic key-based pluralization
 notifications:
     one: "You have {count} new notification."
     other: "You have {count} new notifications."
+
+# Complex ICU Message Format (Nesting + Select + Plural)
+loot_msg: |
+  {hero} found {type, select,
+      weapon {{count, plural, one {a legendary sword} other {# rusty swords}}}
+      potion {{count, plural, one {a healing potion} other {# healing potions}}}
+      other {{count} items}
+  } in the chest.
 ```
 
 **2. Access it in Python:**
@@ -75,9 +85,17 @@ print(en.farewell())                 # Output: Goodbye ! (Missing var handled)
 # 4. List access
 print(en.items[0].name)              # Output: Item 1
 
-# 5. Pluralization
+# 5. Basic Pluralization
 print(en.notifications(1))           # Output: You have 1 new notification.
-print(en.notifications(5))           # Output: You have 5 new notifications.
+
+# 6. Advanced ICUMF Logic
+# "weapon" branch -> "one" sub-branch
+print(en.loot_msg(hero="Arthur", type="weapon", count=1))
+# Output: Arthur found a legendary sword in the chest.
+
+# "potion" branch -> "other" sub-branch
+print(en.loot_msg(hero="Merlin", type="potion", count=5))
+# Output: Merlin found 5 healing potions in the chest.
 ```
 
 ## CLI & Type Safety
@@ -87,6 +105,9 @@ doti18n comes with a CLI to generate type stubs (`.pyi`).
 **Why use it?**
 1.  **Autocompletion:** Your IDE will suggest available keys as you type.
 2.  **Validation:** Static analysis tools will flag errors if you try to access a key that doesn't exist.
+3.  **Deep ICUMF Introspection:** The generator parses complex ICUMF strings (like the `loot_msg` example above) and creates precise function signatures.
+    *   *Example:* For `loot_msg`, it generates: `def loot_msg(self, *, hero: str, type: str, count: int) -> str`.
+    *   Your IDE will tell you exactly which arguments are required, even for deeply nested logic.
 
 **Commands:**
 
