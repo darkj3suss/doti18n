@@ -1,6 +1,6 @@
 You can extend doti18n to support custom file formats by implementing a custom loader. Loaders are **automatically registered** upon class definition.
 
-### Requirements
+## Requirements
 To create a loader, define a class that inherits from `doti18n.loaders.BaseLoader` and meets these criteria:
 
 1.  **`file_extension`**: A string attribute defining the extension (e.g., `.custom`).
@@ -10,11 +10,11 @@ To create a loader, define a class that inherits from `doti18n.loaders.BaseLoade
     - **Multilocale:** `[ {...}, {...} ]`. (with key `locale` inside each dict).
 
 !!! warning "Execution order"
-    If you initialize `LocaleData` with `preload=True`, you **must** define or import your custom loader **before** creating the `LocaleData` instance.
+    You **must** define or import your custom loader **before** creating the `LocaleData` instance.
     
-    **Why?** With preloading enabled, `LocaleData` scans the directory immediately upon initialization. If your loader class hasn't been defined yet, it won't be in the registry, and your custom files will be ignored.
+    **Why?** The Main Loader(doti18n.loaders.Loader) register all available loaders at initialization. If your custom loader is defined later, it won't be registered and won't be used.
 
-### Example Implementation
+## Example Implementation
 
 ```python
 import os
