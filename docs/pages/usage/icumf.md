@@ -521,6 +521,16 @@ Tags are parsed as structured nodes, not just text. This ensures that opening an
     ```yaml
     welcome: "Welcome, <b>{name}</b>! Click <link>here</link>."
     ```
+=== "JSON"
+    `locales/en.json`:
+    ```json
+    {
+        "welcome": "Welcome, <b>{name}</b>! Click <link>here</link>."
+    }
+    ```
+=== "XML"
+    !!! warning "XML Limitation"
+        Tag support is not implemented in XML
 
 **Usage (Default HTML behavior):**
 ```python
