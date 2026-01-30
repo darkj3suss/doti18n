@@ -78,9 +78,9 @@ class Loader:
                 UnsupportedFileExtensionError,
             )
 
-    def _process_data(self, data: Union[Dict, List[Dict]]):
+    def _process_data(self, data: Dict[Any, Any]):
         """Recursively process data to parse strings using ICUMF."""
-        if not self._icumf:
+        if not (isinstance(self._icumf, ICUMF)):
             return
 
         for key, value in data.items():

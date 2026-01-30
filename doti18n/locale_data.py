@@ -16,12 +16,12 @@ class LocaleData:
     """
 
     def __init__(
-            self,
-            path: str,
-            default_locale: str = "en",
-            strict: bool = False,
-            preload: bool = True,
-            loader: Optional[Loader] = None,
+        self,
+        path: str,
+        default_locale: str = "en",
+        strict: bool = False,
+        preload: bool = True,
+        loader: Optional[Loader] = None,
     ):
         """
         Initialize the LocaleData manager.
@@ -59,9 +59,7 @@ class LocaleData:
             self._process_data(data)
 
         if not any(self._raw_translations.values()):
-            self._throw(
-                f"No localization files found or successfully loaded from '{self.path}'.", LocaleNotLoadedError
-            )
+            self._throw(f"No localization files found or successfully loaded from '{self.path}'.", LocaleNotLoadedError)
 
         default_data = self._raw_translations.get(self.default_locale)
         if not isinstance(default_data, dict):

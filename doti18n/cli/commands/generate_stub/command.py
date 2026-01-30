@@ -9,7 +9,6 @@ from doti18n.utils import _deep_merge
 
 from .generate_code import generate_code
 
-
 logger = logging.getLogger("doti18n.stub")
 
 

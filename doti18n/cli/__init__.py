@@ -1,12 +1,14 @@
 import argparse
 import logging
+import sys
 
 import colorlog
-import sys
 
 from .commands.generate_stub import command as stub_cmd
 
+
 def setup_logging():
+    """Set up colorized logging for the CLI."""
     colorlog.basicConfig(
         level=logging.INFO,
         format="%(log_color)s[%(levelname)s]%(reset)s %(name)s: %(cyan)s%(message)s",

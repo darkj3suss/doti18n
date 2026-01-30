@@ -19,11 +19,7 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-            self,
-            strict: bool = True,
-            tag_formatter: type[BaseFormatter] = HTMLFormatter,
-            cache_size: int = 1024,
-            **kwargs
+        self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.
@@ -43,7 +39,7 @@ class ICUMF:
         self.tag_formatter = tag_formatter(strict)
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render)
+        self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render_)
 
     def parse(self, string: str) -> Any:
         """
@@ -80,14 +76,14 @@ class ICUMF:
         :param nodes: The list of parsed nodes.
         :return: A callable function that formats strings based on the nodes.
         """
-        nodes: Tuple = tuple(nodes)
-        return lambda t, **kwargs: self._render_entry(t, nodes, **kwargs)
+        tuple_nodes: Tuple = tuple(nodes)
+        return lambda t, **kwargs: self._render_entry(t, tuple_nodes, **kwargs)
 
     def _render_entry(self, t: "LocaleTranslator", nodes: Tuple[Node], **kwargs) -> str:
         frozen_kwargs = tuple(sorted(kwargs.items())) if kwargs else ()
         return self._cached_render(t, nodes, frozen_kwargs)
 
-    def _cached_render(self, t: "LocaleTranslator", nodes: Tuple[Node], frozen_kwargs: Tuple[Tuple[str, Any], ...]) -> str:
+    def _cached_render_(self, t: "LocaleTranslator", nodes: Tuple[Node], frozen_kwargs: Tuple[Tuple[str, Any]]) -> str:
         kwargs = dict(frozen_kwargs)
         return self._render_nodes(t, list(nodes), **kwargs)
 

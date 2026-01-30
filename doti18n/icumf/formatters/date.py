@@ -1,8 +1,8 @@
 import logging
-from typing import TYPE_CHECKING, Optional, Sequence
 from datetime import datetime
+from typing import TYPE_CHECKING, Optional, Sequence
 
-from ..nodes import Node, FormatNode, TextNode
+from ..nodes import FormatNode, Node, TextNode
 from . import BaseFormatter
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 class DateFormatter(BaseFormatter):
     """
     Formatter for date messages.
+
     Date messages allow for formatting dates based on a given key.
     Example: {date, date, short} or {date, date, long} or {date, date, %d.%m.%Y}.
 
@@ -62,7 +63,12 @@ class DateFormatter(BaseFormatter):
                 TypeError,
             )
 
-        style = self.style.get(node.style, None) or node.style
+        # if cant get style, use the raw value
+        if not node.style:
+            style = self.style["short"]
+        else:
+            style = self.style.get(node.style, self.style["short"])
+
         return [TextNode(date.strftime(style))]
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> list:

@@ -1,13 +1,15 @@
 import logging
-from typing import Tuple, Set
-from doti18n.icumf.parser import Parser
+from typing import Set, Tuple
+
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
+from doti18n.icumf.parser import Parser
 
 
 def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     """
-    Generate a stub signature for a formatted ICU message string,
-    treating ALL variables as named keyword-only arguments.
+    Generate a stub signature for a formatted ICU message string.
+
+    Treating ALL variables as named keyword-only arguments.
     """
     # doti18n require `other`, but we don't need it for stub
     parser = Parser(require_other=False)
