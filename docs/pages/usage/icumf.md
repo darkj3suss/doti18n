@@ -521,12 +521,33 @@ Tags are parsed as structured nodes, not just text. This ensures that opening an
     ```yaml
     welcome: "Welcome, <b>{name}</b>! Click <link>here</link>."
     ```
+=== "JSON"
+    `locales/en.json`:
+    ```json
+    {
+        "welcome": "Welcome, <b>{name}</b>! Click <link>here</link>."
+    }
+    ```
+=== "XML"
+    `locales/en.xml`:
+    ```xml
+    <locale>
+        <welcome>Welcome, <b>{name}</b>! Click <link>here</link>.</welcome>
+    </locale>
+    ```
 
 **Usage (Default HTML behavior):**
 ```python
 print(i18n["en"].welcome(name="User"))
 # Output: Welcome, <b>User</b>! Click <link>here</link>.
 ```
+
+!!! note
+    ICUMF parser doesn't allow self-closing tags (like `<br/>`) and tags with attributes (like `<a href="...">`). 
+    It will be returned as is, and log a warning if `strict_tags=True`.  
+    By default, doti18n converts `<link>` tags into HTML `<a>` tags with `href` attributes.
+    You can customize this behavior by implementing a custom tag formatter (see below).
+
 
 ### Custom Tag Processing (HTML to Markdown)
 To transform tags, you need to implement a custom formatter (or use built-in) class and inject it into the `ICUMF` configuration via the `tag_formatter` argument.
