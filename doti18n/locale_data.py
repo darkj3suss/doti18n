@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .errors import DefaultLocaleNotLoadedError, LocaleNotLoadedError, UnexpectedMultiLocaleError
@@ -17,7 +18,7 @@ class LocaleData:
 
     def __init__(
         self,
-        path: str,
+        path: Union[str, Path],
         default_locale: str = "en",
         strict: bool = False,
         preload: bool = True,
