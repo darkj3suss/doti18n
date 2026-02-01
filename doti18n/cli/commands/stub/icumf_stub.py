@@ -4,6 +4,8 @@ from typing import Set, Tuple
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
 from doti18n.icumf.parser import Parser
 
+logger = logging.getLogger("doti18n.stub")
+
 
 def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     """
@@ -17,7 +19,7 @@ def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     try:
         stack = parser.parse(message)
     except Exception as e:
-        logging.error(f"Failed to parse ICU message\nMessage: {message}\nError: {e}")
+        logger.warning(f"Failed to parse ICU message. Message: {message} Error: {e}")
         return f"{name}: str = {repr(message)}", False
 
     required_kwargs: Set[str] = set()

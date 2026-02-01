@@ -4,14 +4,15 @@ import sys
 
 import colorlog
 
-from .commands.generate_stub import command as stub_cmd
+from .commands.lint import command as lint_cmd
+from .commands.stub import command as stub_cmd
 
 
 def setup_logging():
     """Set up colorized logging for the CLI."""
     colorlog.basicConfig(
         level=logging.INFO,
-        format="%(log_color)s[%(levelname)s]%(reset)s %(name)s: %(cyan)s%(message)s",
+        format="%(log_color)s[%(levelname)s]%(reset)s %(cyan)s%(name)s%(reset)s: %(log_color)s%(message)s",
         log_colors={
             "DEBUG": "bold_cyan",
             "INFO": "bold_green",
@@ -28,6 +29,7 @@ def main():
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
 
     stub_cmd.register(subparsers)
+    lint_cmd.register(subparsers)
 
     if len(sys.argv) == 1:
         parser.print_help()

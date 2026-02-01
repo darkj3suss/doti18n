@@ -558,8 +558,12 @@ The formatter receives a `TagNode` which contains `children` (the content inside
     }
     ```
 === "XML"
-    !!! warning "XML Limitation"
-        Tag support is not implemented in XML
+    `locales/en.xml`:
+    ```xml
+    <locale>
+        <msg>Hello <b>{name}</b>, this is <i>italic</i>.</msg>
+    </locale>
+    ```
 
 
 ```python

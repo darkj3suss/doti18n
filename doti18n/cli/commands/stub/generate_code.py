@@ -4,16 +4,26 @@ from typing import Union
 
 from doti18n.utils import _is_plural_dict
 
-from .formatted_string_stub import generate_stub_signature
+from .formatted_stub import generate_formatted_stub
+from .icumf_stub import generate_icumf_stub
 from .plural_stub import generate_plural_stub
 
 LIBRARY_CODE = """
+from typing import Any, overload, Optional, Union, Literal, List
+from pathlib import Path
+
+
 class LocaleTranslator:
     def get(self, name: str) -> Any: ...
 
 
+class Loader: 
+    pass
+
+
 class LocaleData:
-    def __init__(self, locales_dir: str, default_locale: str = "en", strict: bool = False, preload: bool = True): ...
+    def __init__(self, path: Union[str, Path], default_locale: str = "en", strict: bool = False, preload: bool = True, 
+    loader: Optional[Loader] = None): ...
     def __contains__(self, locale_code: str) -> bool: ...
     @property
     def loaded_locales(self) -> List[str]: ...
@@ -97,11 +107,13 @@ def generate_class(cls: Union[StubLocale, StubNamespace]):
             continue
 
         if isinstance(value, str):
-            sig, is_func = generate_stub_signature(key, value)
+            sig, is_func = generate_icumf_stub(key, value)
             if is_func:
                 lines.append(f"    {sig}")
             else:
-                lines.append(f"    {key}: str = {repr(value)}")
+                code, _ = generate_formatted_stub(key, value)
+                lines.append(f"    {code}")
+
             continue
 
         if isinstance(value, dict):
@@ -163,5 +175,4 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         f"\n    @overload"
         f"\n    def __getitem__(self, locale_code: str) -> {default_locale.capitalize()}Locale: ...\n"
     )
-    header = "from typing import Any, overload, Optional, Union, Literal, List\n\n"
-    return header + "".join(code) + LIBRARY_CODE
+    return "".join(code) + LIBRARY_CODE

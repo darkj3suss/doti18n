@@ -18,6 +18,10 @@ class XmlLoader(BaseLoader):
     """Loader for XML files."""
 
     file_extension = ".xml"
+    INLINE_TAGS = {
+        "b", "strong", "i", "em", "mark", "small", "del", "ins", "sub", "sup",
+        "code", "kbd", "samp", "var", "u", "s", "q", "span", "br", "link", "img"
+    }
 
     def __init__(self, strict: bool = False):
         """Initialize the XmlLoader class."""
@@ -87,12 +91,14 @@ class XmlLoader(BaseLoader):
 
         return None
 
-    def _etree_to_dict(self, node):
+    def _etree_to_dict(self, node) -> Union[Dict, List, str]:
         if node.attrib.get("list") == "true":
             return [self._etree_to_dict(child) for child in node]
 
-        if len(node) == 0:
-            return node.text or ""
+        has_children = len(node) > 0
+        inline_childrens = has_children and all(child.tag in self.INLINE_TAGS for child in node)
+        if not has_children or inline_childrens:
+            return self._get_inner_xml(node)
 
         result = {}
         for child in node:
@@ -105,6 +111,16 @@ class XmlLoader(BaseLoader):
                 result[child.tag] = child_data
 
         return result
+
+    @staticmethod
+    def _get_inner_xml(node) -> str:
+        parts = [node.text or ""]
+
+        for child in node:
+            child_str = Et.tostring(child, encoding="unicode")
+            parts.append(child_str)
+
+        return "".join(parts)
 
     def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
         path = path or []

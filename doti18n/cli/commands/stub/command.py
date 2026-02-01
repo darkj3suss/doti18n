@@ -1,11 +1,10 @@
 import logging
-import os
 import sys
 from pathlib import Path
 
 import doti18n
+from doti18n import LocaleData
 from doti18n.loaders import Loader
-from doti18n.utils import _deep_merge
 
 from .generate_code import generate_code
 
@@ -16,11 +15,11 @@ def register(subparsers):
     """Register the 'stub' command to generate stubs."""
     parser = subparsers.add_parser("stub", help="Generate stubs")
     parser.add_argument(
-        "locales_path",
-        help="Path to locales directory",
+        "path",
+        help="Path to locale's directory",
         nargs="?",
     )
-    parser.add_argument("-l", "--lang", dest="default_locale", default="en", help="Default locale code (default: en)")
+    parser.add_argument("-l", "--locale", dest="default_locale", default="en", help="Default locale code (default: en)")
     parser.add_argument("--clean", action="store_true", help="Remove stubs instead of generating")
     parser.set_defaults(func=handle)
 
@@ -48,13 +47,13 @@ def handle(args):
         except PermissionError:
             logger.error(f"Permission denied when trying to delete '{target_path}'.")
 
-        return
+        exit(0)
 
-    if not args.locales_path:
-        logger.error("No locales path provided. Use --help for more information.")
-        return
+    if not args.path:
+        logger.error("No locale's path is provided. Use --help for more information.")
+        exit(1)
 
-    locales_path = Path(args.locales_path)
+    path = Path(args.path)
     if not _is_venv():
         logger.warning(
             "You are running this command outside a virtual environment.\n"
@@ -64,13 +63,10 @@ def handle(args):
         inp = input("Do you want to continue? (y/N)\n>>> ")
         if inp.lower() != "y":
             print("Aborting...")
-            return
+            exit(0)
 
-    loader = Loader(strict=True)
-    data = {}
-    for filename in os.listdir(locales_path):
-        _deep_merge(loader.load((locales_path / filename).resolve()), data)
-
+    i18n = LocaleData(path, args.default_locale, strict=True, loader=Loader(strict=True, icumf=False))
+    data = i18n._raw_translations
     stub_code = generate_code(data, args.default_locale)
     target_path = package_path / "__init__.pyi"
     try:
@@ -78,6 +74,6 @@ def handle(args):
             f.write(stub_code)
     except PermissionError:
         logger.error(f"Permission denied when trying to write to '{target_path}'.")
-        return
+        exit(1)
 
     logger.info("Stubs generated successfully!")
