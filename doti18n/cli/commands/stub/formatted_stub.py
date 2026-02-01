@@ -40,7 +40,7 @@ PLACEHOLDER_REGEX = re.compile(
 
 
 # ruff: noqa C901
-def generate_stub_signature(name: str, string: str) -> Tuple[str, bool]:
+def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
     """Generate a stub signature for a formatted string entry."""
     required_kwargs: Set[Any] = set()
     used_indices = set()

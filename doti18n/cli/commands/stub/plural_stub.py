@@ -1,6 +1,6 @@
 from typing import Any
 
-from .formatted_string_stub import PLACEHOLDER_REGEX
+from .formatted_stub import PLACEHOLDER_REGEX
 
 
 # ruff: noqa C901
