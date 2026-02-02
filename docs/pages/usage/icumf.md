@@ -47,12 +47,6 @@ print(i18n["en"].cat(count=3))   # Output: I have 3 cats
 print(i18n["en"].cat(count=11))  # Output: I have 11 cats
 ```
 
-Вот готовая секция **Manage ICUMF** для файла `icumf.md`. Я написал её в том же стиле, что и остальные документы: с примерами кода и объяснением параметров.
-
-Вставь это в конец файла `icumf.md`.
-
----
-
 ## Manage ICUMF
 
 By default, doti18n automatically enables ICUMF parsing with standard settings. However, you can customize its behavior, adjust performance settings, or disable it entirely.
@@ -543,10 +537,11 @@ print(i18n["en"].welcome(name="User"))
 ```
 
 !!! note
-    ICUMF parser doesn't allow self-closing tags (like `<br/>`) and tags with attributes (like `<a href="...">`). 
-    It will be returned as is, and log a warning if `strict_tags=True`.  
-    By default, doti18n converts `<link>` tags into HTML `<a>` tags with `href` attributes.
-    You can customize this behavior by implementing a custom tag formatter (see below).
+    The ICUMF parser does not support self-closing tags (like `<br/>`) or tags with attributes (like `<a href="...">`). Such tags are returned as-is, and a warning is logged if `strict_tags=True`.
+    
+    By default, `doti18n` converts `<link>` tags into HTML `<a>` tags with `href` attributes. You can customize this behavior by implementing a custom tag formatter (see below).
+    
+    If you need to include unsupported tags, consider escaping them with single quotes (`'<br/'>`, `'<a href="..."'>`) or using placeholders instead (e.g., `{line_break}`) and passing the values as arguments.
 
 
 ### Custom Tag Processing (HTML to Markdown)

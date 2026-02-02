@@ -22,6 +22,7 @@ nav:
         - Custom Loaders: usage/custom_loaders.md
     - CLI:
         - Stub Generation: cli/stub.md
+        - Linting Translations: cli/lint.md
     - Integrations:
         - Setup: integrations/setup.md
         - Telegram API: integrations/telegram_api.md
