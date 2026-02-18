@@ -143,14 +143,14 @@ doti18n supports defining multiple locales in a single file.
     Using multilocale files is discouraged as it increases maintenance complexity. Separate files per locale are recommended.
 
 === "YAML"
-    Each document must contain a `locale` key (this key is removed from the final data). Missing keys will trigger an error (or a log in non-strict mode).
+    Each document must contain a `__locale__` key (this key is removed from the final data). Missing keys will trigger an error (or a log in non-strict mode).
     
     `locales/locales.yaml`:
     ```yaml
-    locale: "en"
+    __locale__: "en"
     hello: "Hello World!"
     ---
-    locale: "fr"
+    __locale__: "fr"
     hello: "Bonjour le monde!"
     ```
     
@@ -164,11 +164,11 @@ doti18n supports defining multiple locales in a single file.
     ```json
     [
         {
-            "locale": "en",
+            "__locale__": "en",
             "hello": "Hello World!"
         }, 
         {
-            "locale": "fr",
+            "__locale__": "fr",
             "hello": "Bonjour le monde!"
         }
     ]
