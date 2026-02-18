@@ -123,7 +123,7 @@ class Loader:
                 )
                 continue
 
-            locale_code = document.get("locale", None)
+            locale_code = document.get("__locale__", None)
             if not isinstance(locale_code, str):
                 self._throw(
                     f"Locale document #{index} in '{filename}' is missing the 'locale' key.",
@@ -132,7 +132,7 @@ class Loader:
                 continue
 
             content = document.copy()
-            content.pop("locale")
+            content.pop("__locale__")
 
             if locale_code not in initial_data:
                 initial_data[locale_code] = {}
