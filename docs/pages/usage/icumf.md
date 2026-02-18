@@ -560,7 +560,7 @@ class CryptoFormatter(BaseFormatter):
         
         return [TextNode(f"{formatted_value} {node.style.upper()}")]
 
-# Register formatter (by defining/importing it) BEFORE LocaleData initialization
+# Register formatter (by defining/importing it) BEFORE LocaleData(or ICUMF) initialization
 i18n = LocaleData("locales")
 
 print(i18n["en"].crypto(value="123 BTC"))  # Output: You have 84467,51 USDT in your wallet.
@@ -607,6 +607,9 @@ Tags are parsed as structured nodes, not just text. This ensures that opening an
 
 **Usage (Default HTML behavior):**
 ```python
+from doti18n import LocaleData
+
+i18n = LocaleData("locales")
 print(i18n["en"].welcome(name="User"))
 # Output: Welcome, <b>User</b>! Click <link>here</link>.
 ```
@@ -669,3 +672,21 @@ print(i18n["en"].msg(name="Alice"))  # Output: Hello **Alice**, this is __italic
 
 !!! tip "Nested Tags"
     Since the formatter returns the original `node.children`, doti18n continues to process the content inside the tag. This means nesting (e.g., `<b><i>Text</i></b>`) works automatically with your custom formatter.
+
+
+
+### Using Differnt Formatters
+You can pass a specific formatter directly when calling a translation key. This is particularly useful when you need to use the same translation string for different output formats (e.g., HTML for web and Markdown for Telegram bots).
+
+```python
+from doti18n import LocaleData
+from doti18n.icumf.formatters import HTMLFormatter, MarkdownFormatter
+
+i18n = LocaleData("locales")
+html = HTMLFormatter(strict=True)
+md = MarkdownFormatter(strict=True)
+
+key = i18n["en"].msg  # Get the callable for the 'msg' key
+print(key(name="Alice", formatter=html))  # Output: Hello <b>Alice</b>, this is <i>italic</i>.
+print(key(name="Alice", formatter=md))    # Output: Hello **Alice**, this is __italic__.
+```
