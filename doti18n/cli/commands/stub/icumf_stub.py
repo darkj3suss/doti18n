@@ -4,6 +4,7 @@ from typing import Set, Tuple
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
 from doti18n.icumf.parser import Parser
 
+
 logger = logging.getLogger("doti18n.stub")
 
 
@@ -44,7 +45,12 @@ def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     sorted_kwargs = sorted(list(required_kwargs))
 
     for k in sorted_kwargs:
-        parts.append(f"{k}: Any")
+        if k == "link":
+            parts.append(f"{k}: str")
+        elif k == "count":
+            parts.append(f"{k}: int")
+        else:
+            parts.append(f"{k}: Any")
 
     sig_str = ", ".join(parts)
     return f"def {name}({sig_str}) -> str: ...", True
