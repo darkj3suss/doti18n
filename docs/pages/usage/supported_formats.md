@@ -21,6 +21,12 @@
 
     Files must have a `.xml` extension.
 
+=== "TOML"
+    Supports TOML via the built-in `tomllib` module (available in Python 3.11+).  
+    Included by default; no additional installation required for Python 3.11+.
+
+    Files must have a `.toml` extension.
+
 ---
 
 ## Structure Examples
@@ -134,6 +140,39 @@
         *   **Lists:** Tags with identical child names are automatically treated as lists.
         *   **Explicit Lists:** To force a list (e.g., for a single element), add the `list="true"` attribute to the parent tag. Using `list="true"` explicitly is recommended for consistency.
 
+=== "TOML"
+    `locales/en.toml`:
+    
+    ```toml
+    # key-value
+    hello = "Hello World!"
+    
+    # list
+    fruits = [
+        "Apple",
+        "Banana",
+        "Orange"
+    ]
+
+    # nested list
+    [[items]]
+    name = "Item 1"
+    [[items]]
+    name = "Item 2"
+
+    # nested dict
+    [errors]
+    connection = "Connection error occurred."
+    timeout = "Request timed out."
+    
+    # pluralization
+    [notifications]
+    one = "You have {count} new notification."
+    other = "You have {count} new notifications."
+    ```
+    !!! note 
+        Standard [TOML features](https://toml.io/en/) (arrays of tables, inline tables, multi-line strings) are fully supported.
+
 ---
 
 ## Multilocale Files
@@ -193,6 +232,23 @@ doti18n supports defining multiple locales in a single file.
     ```
     !!! warning
         Any XML file with a root element named `<locales>`, `<localizations>`, or `<translations>` is treated as a multilocale file.
+
+=== "TOML"
+    Each document in the `locales` or `translations` array must contain a `__locale__` key. Missing keys will trigger an error (or a log in non-strict mode).
+    
+    `locales/locales.toml`:
+    ```toml
+    [[locales]]
+    __locale__ = "en"
+    hello = "Hello World!"
+
+    [[locales]]
+    __locale__ = "fr"
+    hello = "Bonjour le monde!"
+    ```
+    
+    !!! warning
+        Any TOML file where the root element contains a list named `locales` or `translations` is treated as a multilocale file.
 
 ### Usage Example
 

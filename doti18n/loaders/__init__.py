@@ -17,6 +17,7 @@ from .base_loader import BaseLoader
 from .json_loader import JsonLoader
 from .xml_loader import XmlLoader
 from .yaml_loader import YamlLoader
+from .toml_loader import TomlLoader
 
 logger = logging.getLogger(__name__)
 

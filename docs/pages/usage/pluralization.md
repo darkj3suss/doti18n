@@ -39,6 +39,14 @@ doti18n automatically selects the correct form based on the locale and the count
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    [cat]
+    one = "{count} cat"
+    other = "{count} cats"
+    ```
+
 **Usage:**
 
 ```python
@@ -82,6 +90,14 @@ You can mix pluralization with variable interpolation. Use standard Python forma
             <other>{count} {color} cats</other>
         </cat>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    [cat]
+    one = "{count} {color} cat"
+    other = "{count} {color} cats"
     ```
 
 **Usage:**

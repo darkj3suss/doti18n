@@ -34,13 +34,45 @@ To use literal characters that are reserved for formatting, double them:
 
 ### Usage Example
 
-`locales/en.yaml`:
-```yaml
-balance_python: "Your balance is {amount:.2f} dollars."
-greeting_c: "Hello, %(name)s!"
-farewell_shell: "Goodbye, $name!"
-escaped_str: "Literal braces: {{ and }}."
-```
+=== "YAML"
+    `locales/en.yaml`:
+    ```yaml
+    balance_python: "Your balance is {amount:.2f} dollars."
+    greeting_c: "Hello, %(name)s!"
+    farewell_shell: "Goodbye, $name!"
+    escaped_str: "Literal braces: {{ and }}."
+    ```
+
+=== "JSON"
+    `locales/en.json`:
+    ```json
+    {
+        "balance_python": "Your balance is {amount:.2f} dollars.",
+        "greeting_c": "Hello, %(name)s!",
+        "farewell_shell": "Goodbye, $name!",
+        "escaped_str": "Literal braces: {{ and }}."
+    }
+    ```
+
+=== "XML"
+    `locales/en.xml`:
+    ```xml
+    <locale>
+        <balance_python>Your balance is {amount:.2f} dollars.</balance_python>
+        <greeting_c>Hello, %(name)s!</greeting_c>
+        <farewell_shell>Goodbye, $name!</farewell_shell>
+        <escaped_str>Literal braces: {{ and }}.</escaped_str>
+    </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    balance_python = "Your balance is {amount:.2f} dollars."
+    greeting_c = "Hello, %(name)s!"
+    farewell_shell = "Goodbye, $name!"
+    escaped_str = "Literal braces: {{ and }}."
+    ```
 
 **Python Code:**
 

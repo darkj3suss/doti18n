@@ -84,6 +84,12 @@ Ensure your `locales` directory contains valid translation files (e.g., `en.yaml
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    hello = "Hello World!"
+    ```
+
 **2. Load and Access**
 
 ```python

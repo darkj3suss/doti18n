@@ -24,7 +24,7 @@ pip install .
 Create a directory for your localization files.
 
 !!! tip
-    doti18n supports YAML, JSON, and XML out of the box. You can add other formats via [Custom Loaders](usage/custom_loaders.md).
+    doti18n supports YAML, JSON, XML, and TOML out of the box. You can add other formats via [Custom Loaders](usage/custom_loaders.md).
 
 **Directory Structure:**
 
@@ -74,6 +74,16 @@ project_root/
     <locale>
         <hello>Bonjour le monde!</hello>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    hello = "Hello World!"
+    ```
+    `locales/fr.toml`:
+    ```toml
+    hello = "Bonjour le monde!"
     ```
 
 ---

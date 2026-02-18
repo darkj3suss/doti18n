@@ -35,6 +35,12 @@ ICUMF uses a specific syntax for defining messages, including pluralization, sel
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    cat = "I have {count, plural, one {# cat} other {# cats}}"
+    ```
+
 **Usage:**
 
 ```python
@@ -89,6 +95,12 @@ This `icu:` prefix tells doti18n to always treat the string as ICUMF. doti18n wi
     <locale>
         <cat>icu:I have {count, plural, one {# cat} other {# cats}}</cat>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    cat = "icu:I have {count, plural, one {# cat} other {# cats}}"
     ```
 
 ### Advanced Configuration
@@ -154,6 +166,12 @@ If you want to include additional variables in your messages, simply add them to
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    greeting = "Hello, {name}! You have {count, plural, one {# new message} other {# new messages}}."
+    ```
+
 **Usage:**
 
 ```python
@@ -193,6 +211,13 @@ ICUMF supports pluralization using the `plural` and `selectordinal` formats. You
         <item_count>You have {count, plural, one {# item} other {# items}} in your cart.</item_count>
         <rank>You are ranked {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} in the competition.</rank>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    item_count = "You have {count, plural, one {# item} other {# items}} in your cart."
+    rank = "You are ranked {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} in the competition."
     ```
 
 **Usage:**
@@ -235,6 +260,13 @@ The `select` format allows you to define different message forms based on exact 
         <user_status>{status, select, active {Welcome back!} inactive {Please activate your account.} banned {Your account is banned.} other {Hello, guest!}}</user_status>
         <gender_greeting>{gender, select, male {Hello, sir!} female {Hello, miss!} other {Hello!}}</gender_greeting>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    user_status = "{status, select, active {Welcome back!} inactive {Please activate your account.} banned {Your account is banned.} other {Hello, guest!}}"
+    gender_greeting = "{gender, select, male {Hello, sir!} female {Hello, miss!} other {Hello!}}"
     ```
 
 **Usage:**
@@ -283,6 +315,14 @@ Out of the box, doti18n supports the `date` formatter. You can also implement cu
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    appointment = "Your appointment is on {date, date, short}."
+    now = "Current date and time: {now, date, long}."
+    custom = "Custom formatted date: {date, date, %A, %d %B %Y year, %H:%M:%S (%Z)}."
+    ```
+
 **Usage:**
 
 ```python
@@ -319,7 +359,13 @@ To include literal characters that are reserved for ICUMF formatting (like `{` o
     <locale>
         <escaped>This is a literal brace: '{' and this is a single quote: ''.</escaped>
     </locale>
-    ``` 
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    escaped = "This is a literal brace: '{' and this is a single quote: ''."
+    ```
 
 **Usage:**
 
@@ -362,6 +408,17 @@ ICUMF supports nesting constructs to build complex logic. You can place pluraliz
                       } in your backpack.
         </backpack>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    backpack = """
+    You have {item, select,
+        book {{count, plural, one {# book} other {# books}}}
+        pen {{count, plural, one {# pen} other {# pens}}}
+        other {{count} items}
+    } in your backpack."""
     ```
 
 !!! note "Important: Variable Context"
@@ -408,6 +465,12 @@ However, be careful when using multi-line strings in YAML or XML, as indentation
     <locale>
         <cart>You have {count, plural, one {  # item  } other {  # items  }} in your cart.</cart>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    cart = "You have {count, plural, one {  # item  } other {  # items  }} in your cart."
     ```
 
 **Usage:**
@@ -457,6 +520,12 @@ To create a custom formatter, define a class that inherits from `doti18n.icumf.f
     <locale>
         <crypto>You have {value, crypto, usdt} in your wallet.</crypto>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    crypto = "You have {value, crypto, usdt} in your wallet."
     ```
 
 ```python
@@ -530,6 +599,12 @@ Tags are parsed as structured nodes, not just text. This ensures that opening an
     </locale>
     ```
 
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    welcome = "Welcome, <b>{name}</b>! Click <link>here</link>."
+    ```
+
 **Usage (Default HTML behavior):**
 ```python
 print(i18n["en"].welcome(name="User"))
@@ -569,6 +644,12 @@ The formatter receives a `TagNode` which contains `children` (the content inside
     <locale>
         <msg>Hello <b>{name}</b>, this is <i>italic</i>.</msg>
     </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    msg = "Hello <b>{name}</b>, this is <i>italic</i>."
     ```
 
 
