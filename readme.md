@@ -5,7 +5,7 @@
   <br>
   <b>Type-safe localization library for Python.</b>
   <br>
-  Access YAML, JSON, and XML translations using dot-notation.
+  Access YAML, JSON, XML and TOML translations using dot-notation.
 </div>
 
 ---
@@ -22,7 +22,7 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
 *   **Type Safety:** Generate stubs to get full IDE support and catch typos instantly.
 *   **Advanced ICUMF:** Full support for **ICU Message Format** including nested `select`, `plural`, and custom formatters.
 *   **Pluralization:** Robust support powered by [Babel](https://babel.pocoo.org/).
-*   **Format Agnostic:** Supports YAML, JSON, and XML out of the box.
+*   **Format Agnostic:** Supports YAML, JSON, XML and TOML out of the box.
 *   **Safety Modes:** 
     *   **Strict:** Raises exceptions for missing keys (good for dev/test).
     *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
