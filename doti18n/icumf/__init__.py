@@ -1,7 +1,7 @@
 import logging
 import re
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Optional
 
 from .formatters import *
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
@@ -69,25 +69,33 @@ class ICUMF:
         else:
             return self.compile(ast)
 
-    def compile(self, nodes: List[Node]) -> Callable:
+    def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable:
         """
         Compile the parsed nodes into a callable formatter function.
 
         :param nodes: The list of parsed nodes.
+        :param formatter: An optional formatter function to use for tags.
         :return: A callable function that formats strings based on the nodes.
         """
         tuple_nodes: Tuple = tuple(nodes)
-        return lambda t, **kwargs: self._render_entry(t, tuple_nodes, **kwargs)
+        return lambda t, **kwargs: self._render_entry(t, tuple_nodes, **{"formatter": formatter, **kwargs})
 
     def _render_entry(self, t: "LocaleTranslator", nodes: Tuple[Node], **kwargs) -> str:
+        formatter = kwargs.pop("formatter", None)
         frozen_kwargs = tuple(sorted(kwargs.items())) if kwargs else ()
-        return self._cached_render(t, nodes, frozen_kwargs)
+        return self._cached_render(t, nodes, frozen_kwargs, formatter)
 
-    def _cached_render_(self, t: "LocaleTranslator", nodes: Tuple[Node], frozen_kwargs: Tuple[Tuple[str, Any]]) -> str:
+    def _cached_render_(
+        self,
+        t: "LocaleTranslator",
+        nodes: Tuple[Node],
+        frozen_kwargs: Tuple[Tuple[str, Any]],
+        formatter: Callable = None,
+    ) -> str:
         kwargs = dict(frozen_kwargs)
-        return self._render_nodes(t, list(nodes), **kwargs)
+        return self._render_nodes(t, list(nodes), formatter, **kwargs)
 
-    def _render_nodes(self, t: "LocaleTranslator", nodes: List[Node], **kwargs) -> str:
+    def _render_nodes(self, t: "LocaleTranslator", nodes: List[Node], formatter: Callable = None, **kwargs) -> str:
         text = []
         for node in nodes:
             if isinstance(node, TextNode):
@@ -95,7 +103,7 @@ class ICUMF:
                 continue
 
             elif isinstance(node, (FormatNode, MessageNode)):
-                if not (formatter := self.formatters.get(node.type)):
+                if not (fmt := self.formatters.get(node.type)):
                     if isinstance(node, FormatNode) and not node.style:
                         # treat as simple variable replacement
                         value = kwargs.get(node.name, "")
@@ -108,17 +116,18 @@ class ICUMF:
                     )
                     continue
 
-                result = formatter(t, node, **kwargs)
+                result = fmt(t, node, **kwargs)
                 if isinstance(result, list):
-                    text.append(self._render_nodes(t, result, **kwargs))
+                    text.append(self._render_nodes(t, result, formatter, **kwargs))
                 else:
                     # just in case
                     text.append(str(result))
 
             elif isinstance(node, TagNode):
-                result = self.tag_formatter(t, node, **kwargs)
+                tag_formatter = formatter or self.tag_formatter
+                result = tag_formatter(t, node, **kwargs)
                 if isinstance(result, list):
-                    text.append(self._render_nodes(t, result, **kwargs))
+                    text.append(self._render_nodes(t, result, formatter, **kwargs))
                 else:
                     # just in case
                     text.append(str(result))
