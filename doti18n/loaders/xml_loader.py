@@ -2,7 +2,7 @@ import logging
 import os
 import xml.etree.ElementTree as Et
 from pathlib import Path
-from typing import Dict, List, NoReturn, Optional, Union
+from typing import Any, Dict, List, NoReturn, Optional, Union
 
 from ..errors import (
     EmptyFileError,
@@ -61,6 +61,12 @@ class XmlLoader(BaseLoader):
                     return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
 
             if multiple:
+                if not isinstance(data, dict):
+                    return self._throw(
+                        f"File '{filename}': multiple locales expected, but got {type(data).__name__}",
+                        InvalidLocaleDocumentError,
+                    )
+
                 proccessed = []
                 for locale_code, translations in data.items():
                     if not isinstance(translations, dict):
@@ -77,6 +83,12 @@ class XmlLoader(BaseLoader):
 
                 return proccessed
 
+            if not isinstance(data, dict):
+                return self._throw(
+                    f"File '{filename}': expected a dictionary of translations, but got {type(data).__name__}",
+                    InvalidLocaleDocumentError,
+                )
+
             self._validate(filepath, data)
             locale_code = _get_locale_code(filename)
             self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
@@ -91,7 +103,7 @@ class XmlLoader(BaseLoader):
 
         return None
 
-    def _etree_to_dict(self, node) -> Union[Dict, List, str]:
+    def _etree_to_dict(self, node: Et.Element) -> Union[Dict, List, str]:
         if node.attrib.get("list") == "true":
             return [self._etree_to_dict(child) for child in node]
 
@@ -100,7 +112,7 @@ class XmlLoader(BaseLoader):
         if not has_children or inline_childrens:
             return self._get_inner_xml(node)
 
-        result = {}
+        result: Dict[str, Any] = {}
         for child in node:
             child_data = self._etree_to_dict(child)
             if child.tag in result:
@@ -117,7 +129,7 @@ class XmlLoader(BaseLoader):
         parts = [node.text or ""]
 
         for child in node:
-            child_str = Et.tostring(child, encoding="unicode")
+            child_str = Et.tostring(child, encoding="utf-8")
             parts.append(child_str)
 
         return "".join(parts)
