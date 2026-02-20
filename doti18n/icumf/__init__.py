@@ -19,7 +19,11 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-        self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs
+        self,
+        strict: bool = True,
+        tag_formatter: type[BaseFormatter] = HTMLFormatter,
+        cache_size: int = 1024,
+        **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.

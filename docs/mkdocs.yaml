@@ -31,6 +31,7 @@ nav:
             - FastAPI: integrations/fastapi.md
             - Django: integrations/django.md
             - Flask: integrations/flask.md
+    - Cheatsheet: cheatsheet.md
 
 
 theme:

@@ -56,3 +56,4 @@ You can configure how the library handles missing keys:
 - **[Getting started](getting_started.md)**: Installation and initial setup.
 - **[Usage](usage/supported_formats.md)**: Supported formats (YAML, JSON, XML), pluralization examples, and interpolation(formatting).
 - **[CLI](cli/stub.md)**: How to generate type definitions for your project.
+- **[Cheatsheet](cheatsheet.md)**: Quick reference for common use cases and patterns.

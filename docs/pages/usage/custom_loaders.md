@@ -7,7 +7,7 @@ To create a loader, define a class that inherits from `doti18n.loaders.BaseLoade
 2.  **`__init__`**: Must accept a `strict: bool` argument.
 3.  **`load` method**: Must read the file and return data in one of these formats:
     - **Single locale:** `{ "en": { ... } }` (derived from filename).
-    - **Multilocale:** `[ {...}, {...} ]`. (with key `locale` inside each dict).
+    - **Multilocale:** `[ {...}, {...} ]`. (with key `__locale__` inside each dict).
 
 !!! warning "Execution order"
     You **must** define or import your custom loader **before** creating the `LocaleData` instance.
@@ -45,3 +45,7 @@ class CustomLoader(BaseLoader):
         # 4. Return strictly typed dict: {locale: data}
         return {locale: data}
 ```
+
+!!! tip
+    ICUMF and macros processing in the main loader (`doti18n.loaders.Loader`). 
+    That means your custom loader only needs to focus on parsing the file and returning the raw data.

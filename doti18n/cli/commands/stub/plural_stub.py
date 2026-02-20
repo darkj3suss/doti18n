@@ -10,7 +10,7 @@ def generate_plural_stub(key: str, value: Any) -> str:
         return f"{key}: Any = {repr(value)}"
 
     plural_order = ["zero", "one", "two", "few", "many", "other"]
-    required_kwargs = set()
+    required_kwargs = {}
     used_indices = set()
     seq_cursor = 0
     plural_items = [(k, value[k]) for k in plural_order if k in value and isinstance(value[k], str)]
@@ -29,9 +29,19 @@ def generate_plural_stub(key: str, value: Any) -> str:
             key_name = None
             index = None
             is_sequential = False
+            placeholder_type = "Any"
 
             if groups.get("python"):
                 raw_key = groups.get("python_key")
+                fmt = groups.get("python_format")
+                if fmt:
+                    if any(c in fmt for c in "dfi"):
+                        placeholder_type = "int"
+                    elif any(c in fmt for c in "eEfgG%"):
+                        placeholder_type = "float"
+                    else:
+                        placeholder_type = "str"
+
                 if raw_key:
                     if raw_key.isdigit():
                         index = int(raw_key)
@@ -44,6 +54,15 @@ def generate_plural_stub(key: str, value: Any) -> str:
             elif groups.get("c_style"):
                 c_key = groups.get("c_key")
                 c_index = groups.get("c_index")
+                c_format = groups.get("c_format")
+                if c_format:
+                    if any(c in c_format for c in "diouxX"):
+                        placeholder_type = "int"
+                    elif any(c in c_format for c in "eEfFgG"):
+                        placeholder_type = "float"
+                    elif any(c in c_format for c in "s"):
+                        placeholder_type = "str"
+
                 if c_index:
                     index = int(c_index)
                 elif c_key:
@@ -62,13 +81,14 @@ def generate_plural_stub(key: str, value: Any) -> str:
                         is_named = True
 
             if is_named and key_name:
-                required_kwargs.add(key_name)
+                if key_name not in required_kwargs or required_kwargs[key_name] == "Any":
+                    required_kwargs[key_name] = placeholder_type
             elif index is not None:
-                used_indices.add(index)
+                used_indices.add((index, placeholder_type))
             elif is_sequential:
-                while seq_cursor in used_indices:
+                while any(i == seq_cursor for i, t in used_indices):
                     seq_cursor += 1
-                used_indices.add(seq_cursor)
+                used_indices.add((seq_cursor, placeholder_type))
                 seq_cursor += 1
 
     # Use a safe internal name for the count parameter to avoid collision with placeholders
@@ -76,20 +96,21 @@ def generate_plural_stub(key: str, value: Any) -> str:
     # remove possible collisions
     for coll in (count_param_name, "n", "count"):
         if coll in required_kwargs:
-            required_kwargs.discard(coll)
+            del required_kwargs[coll]
 
     parts = ["self", f"{count_param_name}: int"]
-    max_pos_index = max(used_indices) if used_indices else -1
+    max_pos_index = max(i for i, t in used_indices) if used_indices else -1
     if max_pos_index >= 0:
-        pos_args = [f"_{i}: Any" for i in range(max_pos_index + 1)]
+        pos_types = {i: t for i, t in used_indices}
+        pos_args = [f"_{i}: {pos_types.get(i, 'Any')}" for i in range(max_pos_index + 1)]
         parts.extend(pos_args)
         parts.append("/")
 
     if required_kwargs:
         if max_pos_index == -1:
             parts.append("*")
-        sorted_kwargs = sorted(list(required_kwargs))
-        kw_args = [f"{k}: Any" for k in sorted_kwargs]
+        sorted_kwargs = sorted(list(required_kwargs.keys()))
+        kw_args = [f"{k}: {required_kwargs[k]}" for k in sorted_kwargs]
         parts.extend(kw_args)
 
     sig_str = ", ".join(parts)
