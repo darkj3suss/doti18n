@@ -64,12 +64,13 @@ class Loader:
             data: Union[dict[Any, Any], list[dict[Any, Any]]] = loader.load(filepath)
             if isinstance(data, list):
                 locales = self._load_multiple_locales(filename, data)
-                for _, locale in locales:
-                    self._process_data(locale)
+                for _, locale_data in locales:
+                    self._process_data(locale_data)
 
                 return locales
             else:
-                self._process_data(data)
+                for _, locale_data in data.items():
+                    self._process_data(locale_data)
                 return data
 
         else:
@@ -78,28 +79,6 @@ class Loader:
                 f"doti18n supports: {self.get_supported_extensions()}",
                 UnsupportedFileExtensionError,
             )
-
-    def _process_data(self, data: Dict[Any, Any]):
-        """Recursively process data to parse strings using ICUMF."""
-        if not (isinstance(self._icumf, ICUMF)):
-            return
-
-        for key, value in data.items():
-            if isinstance(value, dict):
-                self._process_data(value)
-            elif isinstance(value, list):
-                for item in value:
-                    if isinstance(item, dict):
-                        self._process_data(item)
-                    elif isinstance(item, str):
-                        processed_item = self._icumf.parse(item)
-                        index = value.index(item)
-                        value[index] = processed_item
-            elif isinstance(value, str):
-                processed_value = self._icumf.parse(value)
-                data[key] = processed_value
-            else:
-                continue
 
     def _load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> List[Tuple[str, Dict[str, Any]]]:
         """
@@ -149,6 +128,75 @@ class Loader:
             self._throw(f"Locale file '{filename}' does not contain any valid locale data.", InvalidLocaleDocumentError)
 
         return locales
+
+    def _process_icumf(self, data: Dict[Any, Any]):
+        """Recursively process data to parse strings using ICUMF."""
+        if not (isinstance(self._icumf, ICUMF)):
+            return
+
+        for key, value in data.items():
+            if isinstance(value, dict):
+                self._process_data(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        self._process_data(item)
+                    elif isinstance(item, str):
+                        processed_item = self._icumf.parse(item)
+                        index = value.index(item)
+                        value[index] = processed_item
+            elif isinstance(value, str):
+                processed_value = self._icumf.parse(value)
+                data[key] = processed_value
+            else:
+                continue
+
+    @staticmethod
+    def _process_macros(data_: Dict[Any, Any]):
+        """Process macros in the data."""
+        keys = ["__doti18n__", "__macros__"]
+        for key in keys:
+            if macros := data_.get(key, None):
+                break
+        else:
+            return
+
+        def replace_macros(data: Dict[Any, Any]) -> Any:
+            nonlocal macros
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    if isinstance(v, str):
+                        data[k] = replace_macros(data[k])
+                    else:
+                        replace_macros(v)
+
+            elif isinstance(data, list):
+                for index, item in enumerate(data):
+                    if isinstance(item, str):
+                        data[index] = replace_macros(data[index])
+                    else:
+                        replace_macros(item)
+
+            elif isinstance(data, str):
+                if "@" not in data:
+                    return data
+
+                for macro_key, macro_value in macros.items():
+                    if f"@{macro_key}" in data:
+                        data = data.replace(f"@{macro_key}", macro_value)
+
+                return data
+
+            else:
+                # just in case
+                return data
+
+        replace_macros(data_)
+
+    def _process_data(self, data: Dict[Any, Any]):
+        """Post-process loaded data."""
+        self._process_macros(data)
+        self._process_icumf(data)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Dict:
         if self._strict:
