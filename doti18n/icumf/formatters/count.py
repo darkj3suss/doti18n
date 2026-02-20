@@ -30,7 +30,7 @@ class CountFormatter(BaseFormatter):
     def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Optional[Node]]:
         """Format a hash (#) inside messages."""
         if not isinstance(node, FormatNode):
-            raise TypeError("countFormatter can only process FormatNode instances.")
+            raise TypeError("CountFormatter can only process FormatNode instances.")
 
         count = kwargs.get(node.name, "")
         if not count and self._strict:

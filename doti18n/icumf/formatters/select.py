@@ -36,13 +36,17 @@ class SelectFormatter(BaseFormatter):
         option = kwargs.get(node.name, None)
         if option not in options:
             if "other" in options:
+                self._logger.warning(
+                    f"Option '{option}' is not valid option for '{node.name}'. "
+                    f"Fallback to 'other'."
+                )
                 option = "other"
-                self._logger.warning(f"No valid option provided for '{node.name}'. Fallback to 'other' option.")
             else:
                 return self._throw(
                     f"No option provided for '{node.name}' " f"and 'other' option is missing.",
                     ValueError,
                 )
+
         if not (result := options.get(option, None)):
             return self._throw(
                 f"No message found for option '{option}' in '{node.name}'.",
