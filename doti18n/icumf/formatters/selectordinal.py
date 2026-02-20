@@ -49,7 +49,7 @@ class SelectordinalFormatter(BaseFormatter):
             option = t._ordinal_func(count)
         except Exception as e:
             self._logger.warning(
-                f"Error determining selectordinal form for count '{count}': {e}. Falling back to 'other' option."
+                f"Error determining selectordinal form for count '{count}': {e}. Falling back to 'other'."
             )
             option = "other"
 

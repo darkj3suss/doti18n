@@ -21,13 +21,13 @@ class NoneWrapper:
         :param path: The file path or directory associated with the instance.
         """
         self._path = path
-        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger = logging.getLogger(f"{self.__class__.__name__}[{repr(locale_code)}]")
         self._locale_code = locale_code
 
     def __call__(self, *args, **kwargs):
         """Log a warning and return None."""
         self._logger.warning(
-            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+            f"key/index path '{self._path}' not found. None will be returned."
         )
         return None
 
@@ -35,7 +35,7 @@ class NoneWrapper:
         """Log a warning and return None."""
         full_key_path = ".".join([self._path, name])
         self._logger.warning(
-            f"Locale '{self._locale_code}': key/index path '{full_key_path}' not found. " "None will be returned."
+            f"key/index path '{full_key_path}' not found. " "None will be returned."
         )
         return NoneWrapper(self._locale_code, f"{self._path}.{name}")
 
@@ -50,14 +50,14 @@ class NoneWrapper:
     def __iter__(self):
         """Log a warning and return an empty iterator."""
         self._logger.warning(
-            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+            f"key/index path '{self._path}' not found. None will be returned."
         )
         return iter([])
 
     def __str__(self):
         """Log a warning and return None."""
         self._logger.warning(
-            f"Locale '{self._locale_code}': key/index path '{self._path}' not found. None will be returned."
+            f"key/index path '{self._path}' not found. None will be returned."
         )
         return "None"
 

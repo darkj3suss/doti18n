@@ -69,7 +69,7 @@ class LocaleNamespace:
         """Return string representation of the namespace for debugging."""
         path_str = ".".join(map(str, self._path)) if self._path else "root"
         return (
-            f"<LocaleNamespace at path '{path_str}' for '{self._translator.locale_code}' "
+            f"<LocaleNamespace['{self._translator.locale_code}'] at path '{path_str}' "
             f"(strict={self._translator._strict})>"
         )
 

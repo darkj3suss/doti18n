@@ -44,11 +44,20 @@ pip install doti18n[yaml]
 **1. Create a localization file** (`locales/en.yaml`):
 
 ```yaml
+__macros__: # Define a section with macros
+    gender: {gender, select, male {He} female {She} other {They}}
+
 greeting: "Hello {}!"
 farewell: "Goodbye $name!"
+
+# Using macros
+user_action: "@gender uploaded a new photo."
+user_status: "@gender is currently online."
+
 items:
     - name: "Item 1"
     - name: "Item 2"
+
 # Basic key-based pluralization
 notifications:
     one: "You have {count} new notification."
@@ -73,22 +82,26 @@ i18n = LocaleData("locales")
 en = i18n["en"]
 
 # 1. Standard formatting (Python-style)
-print(en.greeting("John"))           # Output: Hello John!
+print(en.greeting("John"))              # Output: Hello John!
 
 # 2. Variable formatting (Shell-style)
-print(en.farewell(name="Alice"))     # Output: Goodbye Alice!
+print(en.farewell(name="Alice"))        # Output: Goodbye Alice!
 
 # 3. Raw strings and graceful handling
-print(en.farewell)                   # Output: Goodbye $name! (Raw string)
-print(en.farewell())                 # Output: Goodbye ! (Missing var handled)
+print(en.farewell)                      # Output: Goodbye $name! (Raw string)
+print(en.farewell())                    # Output: Goodbye ! (Missing var handled)
 
-# 4. List access
-print(en.items[0].name)              # Output: Item 1
+# 4. Using strings with macros
+print(en.user_action(gender="male"))    # Output: He uploaded a new photo.
+print(en.user_status(gender="female"))  # Output: She is currently online.
 
-# 5. Basic Pluralization
-print(en.notifications(1))           # Output: You have 1 new notification.
+# 5. List access
+print(en.items[0].name)                 # Output: Item 1
 
-# 6. Advanced ICUMF Logic
+# 6. Basic Pluralization
+print(en.notifications(1))              # Output: You have 1 new notification.
+
+# 7. Advanced ICUMF Logic
 # "weapon" branch -> "one" sub-branch
 print(en.loot_msg(hero="Arthur", type="weapon", count=1))
 # Output: Arthur found a legendary sword in the chest.

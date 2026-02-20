@@ -25,7 +25,7 @@ class LocaleList(list):
         """
         self._data = data
         self._path = path
-        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger = logging.getLogger(f"{self.__class__.__name__}[{repr(translator.locale_code)}]")
         self._translator = translator
         self._strict = translator._strict
         super().__init__(data)
@@ -62,12 +62,11 @@ class LocaleList(list):
             full_path_str = ".".join(map(str, self._path))
             if self._strict:
                 raise IndexError(
-                    f"Locale '{self._translator.locale_code}': "
                     f"Index {index} out of bounds for list at path '{full_path_str}' (length {len(self._data)})."
                 )
             else:
                 self._logger.warning(
-                    f"Locale '{self._translator.locale_code}': Index {index} out of bounds "
+                    "Index {index} out of bounds "
                     f"for list at path '{full_path_str}' (length {len(self._data)}). Returning None."
                 )
                 return None
