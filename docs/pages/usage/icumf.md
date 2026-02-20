@@ -11,7 +11,7 @@ ICUMF uses a specific syntax for defining messages, including pluralization, sel
 - **Formatters**: `{variable, formatter, style}` (e.g., for dates).
 - **Escaping**: Use single quotes `'` to escape the next character. To include a literal single quote, use two single quotes `''`.
 - **Nesting**: ICUMF supports nested constructs for complex messages.
-- **Whitespace**: Ignored outside of the message text.
+- **Whitespace**: Ignored outside the message box(braces `{}`).
 
 ## Basic Example
 
@@ -144,7 +144,7 @@ These parameters are passed as keyword arguments (`**kwargs`) to the `ICUMF` con
 
 
 ## Variable Interpolation
-If you want to include additional variables in your messages, simply add them to the message string and pass them as keyword arguments.
+If you want to include additional variables in your messages, add them to the message string and pass them as keyword arguments.
 
 === "YAML"
     `locales/en.yaml`:
@@ -443,7 +443,7 @@ print(i18n["en"].backpack(item="sword", count=10))  # Output: You have 10 items 
 ```
 
 ## Whitespaces
-ICUMF ignores whitespace characters (spaces, tabs, newlines) outside of the message text. You can format your ICUMF strings for better readability without affecting the logic.
+ICUMF ignores whitespace characters (spaces, tabs, newlines) outside the message text. You can format your ICUMF strings for better readability without affecting the logic.
 
 However, be careful when using multi-line strings in YAML or XML, as indentation inside the message string itself (e.g., inside `{...}`) might be preserved depending on how the file is parsed.
 
