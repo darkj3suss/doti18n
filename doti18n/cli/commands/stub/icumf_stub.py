@@ -23,34 +23,38 @@ def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
         logger.warning(f"Failed to parse ICU message. Message: {message} Error: {e}")
         return f"{name}: str = {repr(message)}", False
 
-    required_kwargs: Set[str] = set()
+    required_kwargs: dict[str, str] = {}
     while stack:
         node = stack.pop()
 
         if isinstance(node, (FormatNode, MessageNode)):
-            required_kwargs.add(node.name)
+            if node.name not in required_kwargs:
+                required_kwargs[node.name] = "Any"
 
             if isinstance(node, MessageNode):
+                if node.type in ("plural", "selectordinal"):
+                    required_kwargs[node.name] = "int"
+                elif node.type == "select":
+                    required_kwargs[node.name] = "Union[str, Any]"
+
                 for child_nodes in node.options.values():
                     stack.extend(child_nodes)
         elif isinstance(node, TagNode):
             if node.name == "link":
-                required_kwargs.add("link")
+                required_kwargs["link"] = "str"
             stack.extend(node.children)
 
     if not required_kwargs:
         return f"{name}: str = {repr(message)}", False
 
     parts = ["self", "*"]
-    sorted_kwargs = sorted(list(required_kwargs))
+    sorted_kwargs = sorted(list(required_kwargs.keys()))
 
     for k in sorted_kwargs:
-        if k == "link":
-            parts.append(f"{k}: str")
-        elif k == "count":
-            parts.append(f"{k}: int")
-        else:
-            parts.append(f"{k}: Any")
+        arg_type = required_kwargs[k]
+        if k == "count":
+            arg_type = "int"
+        parts.append(f"{k}: {arg_type}")
 
     sig_str = ", ".join(parts)
     return f"def {name}({sig_str}) -> str: ...", True
