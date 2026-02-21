@@ -78,14 +78,18 @@ class LocaleData:
 
     def _process_data(self, data: Union[Dict[str, Any], List[Tuple[str, Dict[str, Any]]]]):
         if isinstance(data, dict):
-            _deep_merge(data, self._raw_translations)
+            for locale_code, locale_data in data.items():
+                if locale_code in self._raw_translations:
+                    _deep_merge(locale_data, self._raw_translations[locale_code])
+                else:
+                    self._raw_translations[locale_code] = locale_data
 
         elif isinstance(data, list):
-            for locale_code, data in data:
+            for locale_code, locale_data in data:
                 if locale_code in self._raw_translations:
-                    _deep_merge(data, self._raw_translations[locale_code])
+                    _deep_merge(locale_data, self._raw_translations[locale_code])
                 else:
-                    self._raw_translations[locale_code] = data
+                    self._raw_translations[locale_code] = locale_data
 
     def __getitem__(self, locale_code: str) -> LocaleTranslator:
         """

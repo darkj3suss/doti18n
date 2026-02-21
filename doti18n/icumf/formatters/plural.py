@@ -47,9 +47,7 @@ class PluralFormatter(BaseFormatter):
         try:
             option = t._main_plural_func(count)
         except Exception as e:
-            self._logger.warning(
-                f"Error determining plural form for count '{count}': {e}. Falling back to 'other'."
-            )
+            self._logger.warning(f"Error determining plural form for count '{count}': {e}. Falling back to 'other'.")
             option = "other"
 
         if not (result := options.get(option, None)):

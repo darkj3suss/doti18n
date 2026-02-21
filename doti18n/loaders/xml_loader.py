@@ -19,8 +19,27 @@ class XmlLoader(BaseLoader):
 
     file_extension = ".xml"
     INLINE_TAGS = {
-        "b", "strong", "i", "em", "mark", "small", "del", "ins", "sub", "sup",
-        "code", "kbd", "samp", "var", "u", "s", "q", "span", "br", "link", "img"
+        "b",
+        "strong",
+        "i",
+        "em",
+        "mark",
+        "small",
+        "del",
+        "ins",
+        "sub",
+        "sup",
+        "code",
+        "kbd",
+        "samp",
+        "var",
+        "u",
+        "s",
+        "q",
+        "span",
+        "br",
+        "link",
+        "img",
     }
 
     def __init__(self, strict: bool = False):

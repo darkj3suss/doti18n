@@ -10,7 +10,7 @@ def generate_plural_stub(key: str, value: Any) -> str:
         return f"{key}: Any = {repr(value)}"
 
     plural_order = ["zero", "one", "two", "few", "many", "other"]
-    required_kwargs = {}
+    required_kwargs: dict[str, str] = {}
     used_indices = set()
     seq_cursor = 0
     plural_items = [(k, value[k]) for k in plural_order if k in value and isinstance(value[k], str)]

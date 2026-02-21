@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from textwrap import indent
-from typing import Union
+from typing import Union, Optional
 
 from doti18n.utils import _is_plural_dict
 
@@ -64,7 +64,7 @@ class StubNamespace:
     name: str
     childs: dict
     args: dict
-    list_childs: dict = None
+    list_childs: dict = None  # type: ignore
 
     def __post_init__(self):
         if self.list_childs is None:
@@ -76,7 +76,7 @@ class StubLocale:
     name: str
     childs: dict
     args: dict
-    list_childs: dict = None
+    list_childs: dict = None  # type: ignore
 
     def __post_init__(self):
         if self.list_childs is None:
