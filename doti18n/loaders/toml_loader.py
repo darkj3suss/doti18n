@@ -9,7 +9,7 @@ except ImportError:
     # tomllib is in stdlib since Python 3.11
     tomllib = None  # type: ignore
 
-from ..errors import EmptyFileError, InvalidLocaleIdentifierError, ParseError, LocaleIdentifierMissingError, InvalidLocaleDocumentError
+from ..errors import EmptyFileError, InvalidLocaleIdentifierError, ParseError
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
@@ -50,6 +50,8 @@ class TomlLoader(BaseLoader):
                         continue
 
                     documents = data[root_key]
+                    if not isinstance(documents, list):
+                        continue
                     if not documents:
                         return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
 

@@ -35,7 +35,7 @@ def handle(args):
     path = Path(args.path)
     default_locale = args.default_locale
     icumf = ICUMF() if args.check_icumf else None
-    loader = Loader(True, icumf)
+    loader = Loader(True, icumf=False)  # Don't process anything during loading for lint
     try:
         i18n = LocaleData(path, default_locale, True, loader=loader)
     except Exception as e:
@@ -52,7 +52,7 @@ def handle(args):
             continue
 
         logger.info(f"Linting locale '{locale_code}'...")
-        problems += lint_dict(locale_code, locale_data, source)
+        problems += lint_dict(locale_code, locale_data, source, icumf=icumf)
         linted += 1
 
     if problems == 0:

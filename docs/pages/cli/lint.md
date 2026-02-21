@@ -1,9 +1,9 @@
-## Description
-The CLI tool scans your translation files for consistency issues.
-It compares all target locales against a "source of truth" (default is `en`) to detect missing keys, type mismatches, and structural differences.
+## What is it?
+A CLI tool that scans your translation files for any issues. 
+It compares all locales against your "source of truth" (default is `en`) to find missing keys, type mismatches, and other structural mess-ups.
 
 ## Example
-Given the following structure:
+Imagine you have this structure:
 
 ```text
 project_root/  
@@ -13,7 +13,7 @@ project_root/
 └── main.py  
 ```
 
-Content of `en.yaml` (Source):
+`en.yaml` (Original):
 ```yaml
 greeting: "Hello, World!"
 menu:
@@ -22,29 +22,32 @@ menu:
 items:
   - "Apple"
   - "Banana"
+placeholder: "Hello {name}!"
 ```
 
-Content of `fr.yaml` (Target with errors):
+`fr.yaml` (Translation with errors):
 ```yaml
 # 'greeting' is missing
 menu: "Menu" # Type mismatch: expected dict, got string
 items:
   - "Pomme"
-  # List length mismatch (missing 2nd item)
+  # List length mismatch (missing the 2nd element)
+placeholder: "Bonjour" # Missing placeholder {name}
+extra_key: "Why am I here if I'm not in the original?" # Extra key
 ```
 
-Run the linter:
+Run the lint:
 ```bash
 doti18n lint locales/
 ```
 
-### Results
+### Check Results
 
-**Consistency Checks:**
-The tool outputs logs indicating specific issues within your locale files.
+**Core Checks:**
+The tool will spit out a log with all the problems found.
 
 *Missing Keys:*
-Detects keys that exist in the source locale but are absent in the target.
+Finds stuff that exists in the original but is missing in the translation.
 
 ```text
 [fr] Missing key: greeting
@@ -54,7 +57,7 @@ Detects keys that exist in the source locale but are absent in the target.
 
 ---
 *Type Mismatches:*
-Ensures data types (strings, lists, dictionaries) are consistent across languages.
+Ensures that data types (strings, lists, dicts) match everywhere.
 
 ```text
 [fr] Type mismatch at menu: expected dict, got str
@@ -62,22 +65,38 @@ Ensures data types (strings, lists, dictionaries) are consistent across language
 
 ---
 *List Integrity:*
-Verifies that lists have the same length and structure.
+Checks list lengths and their structure.
 
 ```text
 [fr] List length mismatch at items: expected 2, got 1
 ```
 
+---
+*Extra Keys:*
+If there are keys in the translation that don't exist in the original, the linter will give you a warning.
+
+```text
+[fr] Extra key: extra_key
+```
+
+---
+*Placeholder Validation (Formatted Strings):*
+The linter automatically checks that you haven't forgotten any variables.
+
+```text
+[fr] Missing format fields at some_key: name
+```
+
 ## Options
 
-**Set source of truth:**
-Specify which locale code should be used as the reference for validation (default is `en`).
+**Change the Source of Truth:**
+You can specify a different locale as the reference (default is `en`).
 ```bash
 doti18n lint locales/ --source fr
 ```
 
-**Check ICU Syntax:**
-Enable validation for ICU MessageFormat syntax (e.g., checking braces and placeholders).
+**ICU MessageFormat Validation:**
+If you're using ICU (plurals, selects, etc.), add this flag for deep syntax checking, tag validation, and placeholder matching inside ICU messages.
 ```bash
 doti18n lint locales/ --icumf
 ```

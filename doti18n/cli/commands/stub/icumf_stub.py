@@ -1,13 +1,13 @@
 import logging
-from typing import Set, Tuple
+from typing import Tuple
 
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
 from doti18n.icumf.parser import Parser
 
-
 logger = logging.getLogger("doti18n.stub")
 
 
+# ruff: noqa: C901
 def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     """
     Generate a stub signature for a formatted ICU message string.

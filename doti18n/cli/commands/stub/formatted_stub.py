@@ -111,7 +111,7 @@ def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
                     key = s_key
                     is_named = True
 
-        if is_named:
+        if is_named and key is not None:
             if key not in required_kwargs or required_kwargs[key] == "Any":
                 required_kwargs[key] = placeholder_type
         elif index is not None:

@@ -37,8 +37,7 @@ class SelectFormatter(BaseFormatter):
         if option not in options:
             if "other" in options:
                 self._logger.warning(
-                    f"Option '{option}' is not valid option for '{node.name}'. "
-                    f"Fallback to 'other'."
+                    f"Option '{option}' is not valid option for '{node.name}'. " f"Fallback to 'other'."
                 )
                 option = "other"
             else:
