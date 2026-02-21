@@ -1,7 +1,7 @@
 import logging
 import re
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from .formatters import *
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from doti18n import LocaleTranslator
 
 
-icumf_pattern = re.compile(r"\{\s*\w+\s*,")
+icumf_pattern = re.compile(r"\{\s*\w+\s*[,\}]")
 html_pattern = re.compile(r"<\s*\w+.*?>")
 
 
@@ -19,11 +19,7 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-        self,
-        strict: bool = True,
-        tag_formatter: type[BaseFormatter] = HTMLFormatter,
-        cache_size: int = 1024,
-        **kwargs
+        self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.
@@ -73,6 +69,33 @@ class ICUMF:
         else:
             return self.compile(ast)
 
+    def get_ast(self, string: str) -> Optional[List[Node]]:
+        """
+        Parse the input string and returns its corresponding Abstract Syntax Tree (AST).
+
+        Fallback representation as a list of nodes.
+        This method can handle ICU formatted strings, HTML-like strings, or plain text strings.
+
+        :param string: The input string to be parsed.
+        :type string: str
+        :return: A list of nodes representing the Abstract Syntax Tree (AST) or a fallback
+            representation as a single `TextNode` if parsing fails or is unnecessary.
+        :rtype: Optional[List[Node]]
+        """
+        if not isinstance(string, str):
+            return None
+
+        if string.startswith("icu:"):
+            return self.parser.parse(string[4:])
+
+        if not (icumf_pattern.search(string) or html_pattern.search(string)):
+            return [TextNode(value=string)]
+
+        try:
+            return self.parser.parse(string)
+        except Exception:
+            return [TextNode(value=string)]
+
     def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable:
         """
         Compile the parsed nodes into a callable formatter function.
@@ -94,12 +117,18 @@ class ICUMF:
         t: "LocaleTranslator",
         nodes: Tuple[Node],
         frozen_kwargs: Tuple[Tuple[str, Any]],
-        formatter: Callable = None,
+        formatter: Optional[Callable] = None,
     ) -> str:
         kwargs = dict(frozen_kwargs)
         return self._render_nodes(t, list(nodes), formatter, **kwargs)
 
-    def _render_nodes(self, t: "LocaleTranslator", nodes: List[Node], formatter: Callable = None, **kwargs) -> str:
+    def _render_nodes(
+        self,
+        t: "LocaleTranslator",
+        nodes: List[Node],
+        formatter: Optional[Callable] = None,
+        **kwargs,
+    ) -> str:
         text = []
         for node in nodes:
             if isinstance(node, TextNode):
