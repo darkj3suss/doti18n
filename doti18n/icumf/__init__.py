@@ -53,6 +53,10 @@ class ICUMF:
         if not isinstance(string, str):
             return string
 
+        # explicit not ICUMF
+        if string.startswith("!icu:"):
+            return string
+
         # explicit ICUMF
         if string.startswith("icu:"):
             string = string[4:]
@@ -85,16 +89,19 @@ class ICUMF:
         if not isinstance(string, str):
             return None
 
+        if string.startswith("!icu:"):
+            return [TextNode(string[5:])]
+
         if string.startswith("icu:"):
             return self.parser.parse(string[4:])
 
         if not (icumf_pattern.search(string) or html_pattern.search(string)):
-            return [TextNode(value=string)]
+            return [TextNode(string)]
 
         try:
             return self.parser.parse(string)
         except Exception:
-            return [TextNode(value=string)]
+            return [TextNode(string)]
 
     def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable:
         """
