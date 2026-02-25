@@ -1,8 +1,8 @@
 import logging
 from typing import Tuple
 
+from doti18n.icumf import ICUMF, TextNode
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
-from doti18n.icumf.parser import Parser
 
 logger = logging.getLogger("doti18n.stub")
 
@@ -15,12 +15,15 @@ def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
     Treating ALL variables as named keyword-only arguments.
     """
     # doti18n require `other`, but we don't need it for stub
-    parser = Parser(require_other=False)
+    icumf = ICUMF(strict=False, require_other=False)
 
     try:
-        stack = parser.parse(message)
+        stack = icumf.get_ast(message)
     except Exception as e:
         logger.warning(f"Failed to parse ICU message. Message: {message} Error: {e}")
+        return f"{name}: str = {repr(message)}", False
+
+    if isinstance(stack, list) and len(stack) == 1 and isinstance(stack[0], TextNode):
         return f"{name}: str = {repr(message)}", False
 
     required_kwargs: dict[str, str] = {}
