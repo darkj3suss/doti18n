@@ -73,6 +73,7 @@ loader = Loader(icumf=False)
 i18n = LocaleData("locales", loader=loader)
 ```
 
+
 ### Forcing ICUMF
 If for some reason ICUMF doesn't parse your strings automatically (e.g., due to conflicts with other formatting styles), you can force-enable it via marking strings in your localization files.
 This `icu:` prefix tells doti18n to always treat the string as ICUMF. doti18n will delete the prefix before parsing.
@@ -101,6 +102,36 @@ This `icu:` prefix tells doti18n to always treat the string as ICUMF. doti18n wi
     `locales/en.toml`:
     ```toml
     cat = "icu:I have {count, plural, one {# cat} other {# cats}}"
+    ```
+
+### Explicitly Disabling ICUMF
+If you want to ensure that a string is **never** parsed as ICUMF (even if it contains ICU-like syntax), use the `!icu:` prefix.
+doti18n will remove the prefix and treat the rest of the string as plain text.
+
+=== "YAML"
+    `locales/en.yaml`:
+    ```yaml
+    plain: "!icu:This is {not} an ICU string"
+    ```
+=== "JSON"
+    `locales/en.json`:
+    ```json
+    {
+        "plain": "!icu:This is {not} an ICU string"
+    }
+    ```
+=== "XML"
+    `locales/en.xml`:
+    ```xml
+    <locale>
+        <plain>!icu:This is {not} an ICU string</plain>
+    </locale>
+    ```
+
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    plain = "!icu:This is {not} an ICU string"
     ```
 
 ### Advanced Configuration
