@@ -53,10 +53,18 @@ class ICUMF:
         if not isinstance(string, str):
             return string
 
+        # explicit not ICUMF
+        if string.startswith("!icu:"):
+            return string
+
         # explicit ICUMF
         if string.startswith("icu:"):
             string = string[4:]
-            return self.compile(self.parser.parse(string))
+            func = self.compile(self.parser.parse(string))
+            if callable(func):
+                func.raw = string  # type: ignore
+
+            return func
 
         if not (icumf_pattern.search(string) or html_pattern.search(string)):
             return string
@@ -67,7 +75,11 @@ class ICUMF:
             self._throw(f"Error parsing ICUMF string: {e}", ValueError, logging.WARNING)
             return string
         else:
-            return self.compile(ast)
+            func = self.compile(ast)
+            if callable(func):
+                func.raw = string  # type: ignore
+
+            return func
 
     def get_ast(self, string: str) -> Optional[List[Node]]:
         """
@@ -85,16 +97,19 @@ class ICUMF:
         if not isinstance(string, str):
             return None
 
+        if string.startswith("!icu:"):
+            return [TextNode(string[5:])]
+
         if string.startswith("icu:"):
             return self.parser.parse(string[4:])
 
         if not (icumf_pattern.search(string) or html_pattern.search(string)):
-            return [TextNode(value=string)]
+            return [TextNode(string)]
 
         try:
             return self.parser.parse(string)
         except Exception:
-            return [TextNode(value=string)]
+            return [TextNode(string)]
 
     def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable:
         """
