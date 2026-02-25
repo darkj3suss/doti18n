@@ -52,8 +52,6 @@ class TomlLoader(BaseLoader):
                     documents = data[root_key]
                     if not isinstance(documents, list):
                         continue
-                    if not documents:
-                        return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
 
                     for locale in documents:
                         self._validate(filepath, locale)
