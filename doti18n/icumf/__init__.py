@@ -60,7 +60,11 @@ class ICUMF:
         # explicit ICUMF
         if string.startswith("icu:"):
             string = string[4:]
-            return self.compile(self.parser.parse(string))
+            func = self.compile(self.parser.parse(string))
+            if callable(func):
+                func.raw = string  # type: ignore
+
+            return func
 
         if not (icumf_pattern.search(string) or html_pattern.search(string)):
             return string
@@ -71,7 +75,11 @@ class ICUMF:
             self._throw(f"Error parsing ICUMF string: {e}", ValueError, logging.WARNING)
             return string
         else:
-            return self.compile(ast)
+            func = self.compile(ast)
+            if callable(func):
+                func.raw = string  # type: ignore
+
+            return func
 
     def get_ast(self, string: str) -> Optional[List[Node]]:
         """

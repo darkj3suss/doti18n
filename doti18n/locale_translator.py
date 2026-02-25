@@ -188,7 +188,10 @@ class LocaleTranslator:
             return LocaleList(value, path, self)
         else:
             if callable(value):
-                return partial(value, self)
+                func = partial(value, self)
+                func.raw = value.raw  # type: ignore
+
+                return func
             return value
 
     def _create_plural_handler(
