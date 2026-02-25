@@ -1,5 +1,5 @@
 import re
-from typing import Tuple, Set, Any
+from typing import Tuple
 
 PLACEHOLDER_REGEX = re.compile(
     r"""
@@ -139,7 +139,10 @@ def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
         parts.extend(kw_args)
 
     if max_pos_index == -1 and not required_kwargs:
-        return f"{name}: str = {repr(string)}", False
+        if "{{" in string or "}}" in string or "%%" in string or "$$" in string:
+            return f"def {name}(self) -> str: ...", True
+        else:
+            return f"{name}: str = {repr(string)}", False
 
     sig_str = ", ".join(parts)
     return f"def {name}({sig_str}) -> str: ...", True
