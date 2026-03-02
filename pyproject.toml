@@ -98,4 +98,4 @@ exclude = ["venv", "tests/"]
 Homepage = "https://github.com/darkj3suss/doti18n"
 BugTracker = "https://github.com/darkj3suss/doti18n/issues"
 Repository = "https://github.com/darkj3suss/doti18n"
-
+Documentation = "https://darkj3suss.github.io/doti18n/"
