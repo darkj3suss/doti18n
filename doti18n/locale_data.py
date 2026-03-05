@@ -102,6 +102,11 @@ class LocaleData:
         :param locale_code: The code of the desired locale (e.g., 'en', 'FR').
         :return: The LocaleTranslator instance for the requested locale.
         """
+        if not locale_code:
+            self._throw("Locale code cannot be empty.", ValueError)
+            self._logger.warning("Falling back to default locale code.")
+            locale_code = self.default_locale
+
         normalized_locale_code = locale_code.lower()
         if normalized_locale_code in self._locale_translators_cache:
             return self._locale_translators_cache[normalized_locale_code]

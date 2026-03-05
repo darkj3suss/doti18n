@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "doti18n"
-version = "0.8.3"
+version = "0.8.4"
 description = "Python library for loading localizations with dot access and pluralization."
 readme = { file = "readme.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -98,4 +98,4 @@ exclude = ["venv", "tests/"]
 Homepage = "https://github.com/darkj3suss/doti18n"
 BugTracker = "https://github.com/darkj3suss/doti18n/issues"
 Repository = "https://github.com/darkj3suss/doti18n"
-
+Documentation = "https://darkj3suss.github.io/doti18n/"
