@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from doti18n import LocaleTranslator
 
 
-icumf_pattern = re.compile(r"\{\s*\w+\s*[,\}]")
+icumf_pattern = re.compile(r"\{\s*\w+\s*,\}")
 html_pattern = re.compile(r"<\s*\w+.*?>")
 
 
