@@ -6,7 +6,6 @@ from typing import Dict, List, Optional, Union
 
 from ..errors import (
     EmptyFileError,
-    InvalidLocaleIdentifierError,
     ParseError,
 )
 from ..utils import _get_locale_code
@@ -48,12 +47,8 @@ class JsonLoader(BaseLoader):
                     return {}
 
                 if isinstance(data, list):
-                    for locale in data:
-                        self._validate(filepath, locale)
-
                     return data
 
-                self._validate(filepath, data)
                 locale_code = _get_locale_code(filename)
                 self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
                 return {locale_code: data}
@@ -65,28 +60,6 @@ class JsonLoader(BaseLoader):
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
         return None
-
-    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
-        path = path or []
-        for key in data.keys():
-            if not isinstance(key, str):
-                self._throw(
-                    f"JSON key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if not key.isidentifier():
-                self._throw(
-                    f"JSON key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if isinstance(data[key], dict):
-                self._validate(filepath, data[key], path + [key])
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR):
         if self._strict:

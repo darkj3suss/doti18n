@@ -7,7 +7,6 @@ from typing import Any, Dict, List, NoReturn, Optional, Union
 from ..errors import (
     EmptyFileError,
     InvalidLocaleDocumentError,
-    InvalidLocaleIdentifierError,
     ParseError,
 )
 from ..utils import _get_locale_code
@@ -95,7 +94,6 @@ class XmlLoader(BaseLoader):
                             InvalidLocaleDocumentError,
                         )
 
-                    self._validate(filepath, translations)
                     entry = {"locale": locale_code}
                     entry.update(translations)
                     proccessed.append(entry)
@@ -108,7 +106,6 @@ class XmlLoader(BaseLoader):
                     InvalidLocaleDocumentError,
                 )
 
-            self._validate(filepath, data)
             locale_code = _get_locale_code(filename)
             self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
             return {locale_code: data}
@@ -152,28 +149,6 @@ class XmlLoader(BaseLoader):
             parts.append(child_str)
 
         return "".join(parts)
-
-    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
-        path = path or []
-        for key in data.keys():
-            if not isinstance(key, str):
-                self._throw(
-                    f"XML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if not key.isidentifier():
-                self._throw(
-                    f"XML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if isinstance(data[key], dict):
-                self._validate(filepath, data[key], path + [key])
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
         if self._strict:

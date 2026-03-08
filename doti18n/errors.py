@@ -18,16 +18,6 @@ class MissingFileExtensionError(Doti18nError):
     """Exception raised when trying to load a file without an extension."""
 
 
-class InvalidLocaleIdentifierError(Doti18nError):
-    """
-    Raised when a key in a locale file is not a valid Python identifier.
-
-    Because doti18n allows accessing translations via dot notation (e.g., `t.messages.hello`),
-    all keys must be valid Python variable names. They cannot contain hyphens,
-    spaces, or start with a number.
-    """
-
-
 class InvalidLocaleDataError(Doti18nError):
     """Base class for exceptions related to invalid locale data."""
 

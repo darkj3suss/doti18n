@@ -38,7 +38,7 @@ class Loader:
         """Return a list of supported file extensions."""
         return tuple(self.loaders.keys())
 
-    def load(self, filepath: Union[str, Path]) -> Union[Dict, List[Tuple[str, dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
         """
         Load the content of a file and processes it based on its extension.
 
@@ -63,15 +63,15 @@ class Loader:
         if loader := self.loaders.get(extension.lower()):
             data: Union[dict[Any, Any], list[dict[Any, Any]]] = loader.load(filepath)
             if isinstance(data, list):
-                locales = self._load_multiple_locales(filename, data)
-                for _, locale_data in locales:
-                    self._process_data(locale_data)
-
-                return locales
+                locale_data = self._load_multiple_locales(filename, data)
             else:
-                for _, locale_data in data.items():
-                    self._process_data(locale_data)
-                return data
+                locale_data = data
+
+            for _, locale in locale_data.items():
+                self._validate(filepath, locale)
+                self._process_data(locale)
+
+            return locale_data
 
         else:
             return self._throw(
@@ -80,7 +80,7 @@ class Loader:
                 UnsupportedFileExtensionError,
             )
 
-    def _load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> List[Tuple[str, Dict[str, Any]]]:
+    def _load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """
         Process and validate multiple locale configurations.
 
@@ -127,7 +127,26 @@ class Loader:
         if not locales:
             self._throw(f"Locale file '{filename}' does not contain any valid locale data.", InvalidLocaleDocumentError)
 
-        return locales
+        return dict(locales)
+
+    def _validate(self, filepath: Union[str, Path], data: dict | list, path: Optional[List[str | int]] = None):
+        path = path or []
+        if isinstance(data, dict):
+            for key in data.keys():
+                if not isinstance(key, str) or not key.isidentifier():
+                    self._logger.warning(
+                        f"Key '{key}' is not a valid Python identifier. Call via dot notation is not possible. "
+                        f"Problem found at path: '{'.'.join(map(str, path + [key]))}' "
+                        f"in file: {filepath}",
+                    )
+
+                if isinstance(data[key], dict):
+                    self._validate(filepath, data[key], path + [key])
+
+        elif isinstance(data, list):
+            for index, item in enumerate(data):
+                if isinstance(item, (dict, list)):
+                    self._validate(filepath, item, path + [index])
 
     def _process_icumf(self, data: Dict[Any, Any]):
         """Recursively process data to parse strings using ICUMF."""

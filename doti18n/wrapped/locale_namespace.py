@@ -108,7 +108,7 @@ class LocaleNamespace:
 
     def get(self, name: str) -> Any:
         """Symbolic alias for __getattr__."""
-        return self._resolve_value_by_path([name])
+        return self._translator._resolve_value_by_path(self._path + [name])
 
     def to_list(self):
         """Convert the namespace to a list."""
