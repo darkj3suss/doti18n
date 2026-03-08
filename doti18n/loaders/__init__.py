@@ -29,7 +29,17 @@ class Loader:
         """Initialize the Loader class."""
         if icumf is None:
             icumf = ICUMF(strict)
-        self.loaders = {ext: cls_loader(strict) for ext, cls_loader in BaseLoader._LOADERS.items()}
+        self.loaders = {}
+        for extension, loader_cls in BaseLoader._LOADERS.items():
+            loader = loader_cls(strict)
+            if isinstance(extension, (list, set, tuple)):
+                for ext in extension:
+                    self.loaders[ext] = loader
+            elif isinstance(extension, str):
+                self.loaders[extension] = loader
+            else:
+                raise ValueError(f"Invalid file extension type: {type(extension)} for loader {loader_cls.__name__}")
+
         self._logger = logger
         self._strict = strict
         self._icumf = icumf
