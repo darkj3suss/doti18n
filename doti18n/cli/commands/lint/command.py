@@ -11,7 +11,7 @@ logger = logging.getLogger("doti18n.lint")
 
 
 def register(subparsers):
-    """Register the 'lint' command to lint translates."""
+    """Register the 'lint' command to lint translate."""
     parser = subparsers.add_parser("lint", help="Scan locales for issues")
     parser.add_argument(
         "path",
@@ -19,15 +19,14 @@ def register(subparsers):
         nargs="?",
     )
     parser.add_argument(
-        "-s", "--source", dest="default_locale", default="en", help="Source of true (locale code) (default: en)"
+        "-l", "--locale", dest="default_locale", default="en", help="Source of true (locale code) (default: en)"
     )
     parser.add_argument("--icumf", dest="check_icumf", action="store_true", help="Check ICU MessageFormat syntax")
-
     parser.set_defaults(func=handle)
 
 
 def handle(args):
-    """Handle the 'lint' command to lint translates."""
+    """Handle the 'lint' command to lint translate."""
     if not args.path:
         logger.error("No locale's path is provided. Use --help for more information.")
         exit(1)
