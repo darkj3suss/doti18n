@@ -23,21 +23,7 @@ class JsonLoader(BaseLoader):
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
-        """
-        Load and validate locale data from a JSON file.
-
-        The method reads the contents of the file and validates them against the given structure.
-        It returns the parsed data as a dictionary or a list of dictionaries, depending on the file content.
-
-        :param filepath: The path to the JSON file to be loaded.
-        :return: Parsed data from the JSON file. It could be a dictionary where the key
-            is a locale code and the value is its corresponding data, or a list of
-            dictionaries containing locale information.
-        :raises EmptyFileError: Raised if the file exists but is empty.
-        :raises ParseError: Raised if there is an issue with parsing the JSON in the file.
-        :raises FileNotFoundError: Raised if the specified file does not exist.
-        :raises Exception: Raised for any other unexpected errors during the file loading process.
-        """
+        """Load and validate locale data from a JSON file."""
         filename = os.path.basename(filepath)
         try:
             with open(filepath, encoding="utf-8") as f:
@@ -60,6 +46,12 @@ class JsonLoader(BaseLoader):
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
         return None
+
+    @staticmethod
+    def save(filepath: Union[str, Path], data: Dict[str, Dict]):
+        """Save localization data to a JSON file."""
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR):
         if self._strict:

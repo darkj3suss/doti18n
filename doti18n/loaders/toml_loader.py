@@ -3,15 +3,22 @@ import os
 from pathlib import Path
 from typing import Dict, List, NoReturn, Optional, Union
 
+from ..errors import EmptyFileError, ParseError
+from ..utils import _get_locale_code
+from .base_loader import BaseLoader
+
 try:
     import tomllib
 except ImportError:
     # tomllib is in stdlib since Python 3.11
     tomllib = None  # type: ignore
 
-from ..errors import EmptyFileError, ParseError
-from ..utils import _get_locale_code
-from .base_loader import BaseLoader
+try:
+    import tomlkit
+    import tomlkit.exceptions as err
+except ImportError:
+    tomlkit = None  # type: ignore
+    err = None  # type: ignore
 
 
 class TomlLoader(BaseLoader):
@@ -25,16 +32,7 @@ class TomlLoader(BaseLoader):
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
-        """
-        Load and validate localization data from a TOML file.
-
-        :param filepath: The full path to the TOML file to load.
-        :return: A dictionary containing locale-specific data.
-        :raises ImportError: If the tomllib package is not available.
-        :raises FileNotFoundError: If the specified file does not exist.
-        :raises ParseError: For issues in parsing the TOML file.
-        :raises Exception: For any other unexpected exceptions during the load process.
-        """
+        """Load and validate localization data from a TOML file."""
         if not tomllib:
             raise ImportError("tomllib is not available. TOML support requires Python 3.11+.")
 
@@ -67,6 +65,34 @@ class TomlLoader(BaseLoader):
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
         return None
+
+    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+        """Load and validate localization data from a TOML file, preserving comments."""
+        global tomllib
+        if not tomlkit:
+            raise ImportError("tomlkit is not available. Comment support for TOML files requires the tomlkit package.")
+
+        if not tomllib:
+            raise ImportError("tomllib is not available. TOML support requires Python 3.11+.")
+
+        _tomltib = tomllib  # type: ignore
+        try:
+            tomlib = tomlkit  # type: ignore
+            tomlib.TOMLDecodeError = err.ParseError  # type: ignore
+            data = self.load(filepath)
+        finally:
+            tomlib = _tomltib  # type: ignore
+
+        return data
+
+    def save(self, filepath: Union[str, Path], data: Dict[str, Dict]):
+        """Save localization data to a TOML file."""
+        if not tomlkit:
+            raise ImportError("tomlkit is not available. Saving TOML files with comments requires the tomlkit package.")
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            toml_string = tomlkit.dumps(data)  # type: ignore
+            f.write(toml_string)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
         if self._strict:
