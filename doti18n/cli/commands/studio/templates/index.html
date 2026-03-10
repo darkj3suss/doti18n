@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doti18n studio</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>doti18n studio</h1>
+        </div>
+        <div class="controls">
+            <select id="locale-selector">
+                <?py for locale in locales: ?>
+                <option value="${locale}">${locale}</option>
+                <?py #endfor ?>
+            </select>
+        </div>
+    </header>
+    <main>
+        <div id="split-container">
+            <div id="left-panel">
+                <div id="left-panel-header">
+                    <div class="tree-controls">
+                        <button id="expand-all" title="Expand all">Expand All</button>
+                        <button id="collapse-all" title="Collapse all">Collapse All</button>
+                    </div>
+                    <div class="filter-controls">
+                        <label class="toggle-container">
+                            <input type="checkbox" id="untranslated-only">
+                            <span class="toggle-label">Untranslated only</span>
+                        </label>
+                    </div>
+                    <input type="text" id="search-keys" placeholder="Search keys..." autocomplete="off">
+                </div>
+                <div id="keys-tree"></div>
+            </div>
+            <div id="resizer"></div>
+            <div id="right-panel">
+                <div id="editor">
+                    <div id="editor-header">
+                        <span id="current-key">Select a key to edit</span>
+                    </div>
+                    <div id="editor-textarea" class="editor-content" contenteditable="true" placeholder="Enter translation here... (Use Shift+Enter for new lines)"></div>
+                    <div id="editor-footer">
+                        <span id="save-status">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/static/app.js"></script>
+</body>
+</html>

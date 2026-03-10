@@ -41,7 +41,7 @@ Run the lint:
 doti18n lint locales/
 ```
 
-### Check Results
+### Results
 
 **Core Checks:**
 The tool will spit out a log with all the problems found.

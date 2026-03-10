@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, NoReturn, Optional, Union
 
-from ..errors import EmptyFileError, InvalidLocaleIdentifierError, ParseError
+from ..errors import EmptyFileError, ParseError
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
@@ -11,6 +11,11 @@ try:
     import yaml
 except ImportError:
     yaml = None  # type: ignore
+
+try:
+    import ruamel.yaml as ryaml
+except ImportError:
+    ryaml = None  # type: ignore
 
 
 class YamlLoader(BaseLoader):
@@ -24,42 +29,24 @@ class YamlLoader(BaseLoader):
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
-        """
-        Load and validate localization data from a YAML file.
-
-        Supports files containing either a single YAML document or multiple documents.
-        For single-document YAML files, the document is returned as a dictionary mapped to the locale code.
-        For multi-document YAML files, a list of dictionaries is returned. Errors are handled
-        and parsed in cases such as missing files, malformed YAML syntax, or other exceptions.
-
-        :param filepath: The full path to the YAML file to load.
-        :return: A dictionary containing locale-specific data if a single document is found.
-            For multi-document files, a list of dictionaries is returned. If the file is empty,
-            an empty dictionary is returned.
-        :raises ImportError: If the PyYAML package is not installed.
-        :raises FileNotFoundError: If the specified file does not exist.
-        :raises ParseError: For issues in parsing the YAML file.
-        :raises Exception: For any other unexpected exceptions during the load process.
-        """
+        """Load and validate localization data from a YAML file."""
         if not yaml:
             raise ImportError("PyYAML package is not installed, cannot load YAML files.")
 
         filename = os.path.basename(filepath)
+        # noinspection PyUnresolvedReferences
         try:
             with open(filepath, encoding="utf-8") as f:
                 locale_code = _get_locale_code(filename)
+                # noinspection PyUnresolvedReferences
                 data = list(yaml.safe_load_all(f))
                 if not data:
                     return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
 
                 if len(data) > 1:
-                    for locale in data:
-                        self._validate(filepath, locale)
-
                     return data
 
                 else:
-                    self._validate(filepath, data[0])
                     self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
                     return {locale_code: data[0]}
 
@@ -72,27 +59,39 @@ class YamlLoader(BaseLoader):
 
         return None
 
-    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
-        path = path or []
-        for key in data.keys():
-            if not isinstance(key, str):
-                self._throw(
-                    f"YAML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
+    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+        """Load a YAML file while preserving comments."""
+        global yaml
+        if not ryaml:
+            raise ImportError("ruamel.yaml package is not installed, cannot load YAML files with comments.")
 
-            if not key.isidentifier():
-                self._throw(
-                    f"YAML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
+        if not yaml:
+            raise ImportError("PyYAML package is not installed, cannot load YAML files.")
 
-            if isinstance(data[key], dict):
-                self._validate(filepath, data[key], path + [key])
+        _yaml = yaml
+        try:
+            yaml = ryaml.YAML(typ="rt")  # type: ignore
+            yaml.safe_load_all = yaml.load_all  # type: ignore
+            yaml.YAMLError = ryaml.YAMLError  # type: ignore
+            data = self.load(filepath)
+        finally:
+            yaml = _yaml
+
+        return data
+
+    @staticmethod
+    def save(filepath: Union[str, Path], data: Dict[str, Dict]):
+        """Save localization data to a YAML file."""
+        global yaml
+        if not ryaml:
+            raise ImportError("ruamel.yaml package is not installed, cannot save YAML files with comments.")
+
+        if not yaml:
+            raise ImportError("PyYAML package is not installed, cannot save YAML files.")
+
+        _yaml = ryaml.YAML()
+        with open(filepath, "w", encoding="utf-8") as f:
+            _yaml.dump(data, f)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
         if self._strict:

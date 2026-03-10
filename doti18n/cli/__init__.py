@@ -6,6 +6,7 @@ import colorlog
 
 from .commands.lint import command as lint_cmd
 from .commands.stub import command as stub_cmd
+from .commands.studio import command as studio_cmd
 
 
 def setup_logging():
@@ -26,10 +27,11 @@ def setup_logging():
 def main():
     """Entry point for the doti18n CLI."""
     parser = argparse.ArgumentParser(prog="doti18n")
-    subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
+    subparsers = parser.add_subparsers(dest="subcommand")
 
     stub_cmd.register(subparsers)
     lint_cmd.register(subparsers)
+    studio_cmd.register(subparsers)
 
     if len(sys.argv) == 1:
         parser.print_help()

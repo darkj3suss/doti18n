@@ -1,4 +1,4 @@
-If you don't read the [setup instruction](./setup.md), please do so first.
+If you haven't read the [setup instruction](./setup.md), please do so first.
 
 === "Middleware (Recommended)"
     **`middleware.py`**

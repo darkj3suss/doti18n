@@ -1,23 +1,36 @@
 import logging
-import os
 import xml.etree.ElementTree as Et
 from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Union
+from xml.etree.ElementTree import XMLParser
 
 from ..errors import (
     EmptyFileError,
     InvalidLocaleDocumentError,
-    InvalidLocaleIdentifierError,
     ParseError,
 )
 from ..utils import _get_locale_code
 from .base_loader import BaseLoader
 
 
+class Parser(Et.TreeBuilder):
+    """Custom XML parser to support comments extraction."""
+
+    def comment(self, data: str | None):
+        """Handle XML comments by treating them as special nodes in the tree."""
+        if not data:
+            return
+
+        self.start(Et.Comment, {})
+        self.data(data)
+        self.end(Et.Comment)  # type: ignore
+
+
 class XmlLoader(BaseLoader):
     """Loader for XML files."""
 
     file_extension = ".xml"
+
     INLINE_TAGS = {
         "b",
         "strong",
@@ -46,38 +59,23 @@ class XmlLoader(BaseLoader):
         """Initialize the XmlLoader class."""
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
+        self._root_tags: Dict[str, str] = {}
+        self._explicit_lists: Dict[str, Dict[str, str]] = {}
 
+    # ruff: noqa: C901
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
-        """
-        Load and processes localization data from an XML file.
+        """Load and processes localization data from an XML file."""
+        filepath = Path(filepath)
+        filename = filepath.name
 
-        The method supports both single and multiple locale documents.
-        If the root element of the file matches predefined tags associated with multiple locales
-        (such as "locales", "localizations", or "translations"),
-        the data is processed into a list of dictionaries, each containing a locale code and its translations.
-        Otherwise, the file is treated as a single locale document.
-        The method ensures validation of loaded data and extracts locale codes based on filenames.
-
-        :param filepath: The path to the XML localization file to be loaded.
-        :return: A dictionary with locale code and its translations for single locale
-                 documents, or a list of dictionaries for multiple locale XML files.
-                 Returns None if the file is determined to be empty or invalid.
-        :raises EmptyFileError: If the file is empty and contains no data.
-        :raises InvalidLocaleDocumentError: If the data structure in the file does not
-                 match the expected format.
-        :raises ParseError: If the XML file cannot be parsed successfully due to syntax errors.
-        :raises FileNotFoundError: If the specified file does not exist.
-        :raises Exception: For any other unexpected errors encountered while loading files.
-        """
-        # note: ROOT ELEMENT IGNORED
-        filename = os.path.basename(filepath)
         try:
-            with open(filepath, encoding="utf-8") as f:
-                root = Et.fromstring(f.read())
-                multiple = root.tag in ("locales", "localizations", "translations")
-                data = self._etree_to_dict(root)
-                if not data:
-                    return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
+            tree = Et.parse(filepath)
+            root = tree.getroot()
+            multiple = root.tag in ("locales", "localizations", "translations")
+            locale_code = "" if multiple else _get_locale_code(filename)
+            data = self._etree_to_dict(root, locale_code)
+            if not data:
+                return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
 
             if multiple:
                 if not isinstance(data, dict):
@@ -86,21 +84,22 @@ class XmlLoader(BaseLoader):
                         InvalidLocaleDocumentError,
                     )
 
-                proccessed = []
-                for locale_code, translations in data.items():
+                processed = []
+                for loc_code, translations in data.items():
+                    if loc_code.startswith("comment_"):
+                        continue
+
                     if not isinstance(translations, dict):
                         return self._throw(
-                            f"File '{filename}': locale '{locale_code}': data must be a dictionary, "
-                            f"but got {type(translations).__name__}",
+                            f"File '{filename}': locale '{loc_code}': data must be a dict, "
+                            f"got {type(translations).__name__}",
                             InvalidLocaleDocumentError,
                         )
 
-                    self._validate(filepath, translations)
-                    entry = {"locale": locale_code}
-                    entry.update(translations)
-                    proccessed.append(entry)
+                    self._root_tags[loc_code] = root.tag
+                    processed.append({"locale": loc_code, **translations})
 
-                return proccessed
+                return processed
 
             if not isinstance(data, dict):
                 return self._throw(
@@ -108,76 +107,166 @@ class XmlLoader(BaseLoader):
                     InvalidLocaleDocumentError,
                 )
 
-            self._validate(filepath, data)
-            locale_code = _get_locale_code(filename)
+            self._root_tags[locale_code] = root.tag
             self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
             return {locale_code: data}
 
         except Et.ParseError as e:
-            self._throw(f"Error parsing XML file '{filename}': {e}", ParseError)
+            return self._throw(f"Error parsing XML file '{filename}': {e}", ParseError)
         except FileNotFoundError:
-            self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
+            return self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
         except Exception as e:
-            self._throw(f"Unknown error loading '{filename}': {e}", type(e))
+            return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-        return None
+    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+        """Load and process localization data from an XML file, preserving comments."""
+        filepath = Path(filepath)
+        filename = filepath.name
 
-    def _etree_to_dict(self, node: Et.Element) -> Union[Dict, List, str]:
-        if node.attrib.get("list") == "true":
-            return [self._etree_to_dict(child) for child in node]
+        try:
+            parser = XMLParser(target=Parser())
+            tree = Et.parse(filepath, parser=parser)
+            root = tree.getroot()
+            multiple = root.tag in ("locales", "localizations", "translations")
+            locale_code = "" if multiple else _get_locale_code(filename)
+            data = self._etree_to_dict(root, locale_code)
+            if not data:
+                return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
+
+            if multiple:
+                self._throw(
+                    "File '{filename}' contains multiple locales, which is not supported to load with comments.",
+                    NotImplementedError,
+                )
+
+            if not isinstance(data, dict):
+                return self._throw(
+                    f"File '{filename}': expected a dictionary of translations, but got {type(data).__name__}",
+                    InvalidLocaleDocumentError,
+                )
+
+            self._root_tags[locale_code] = root.tag
+            self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
+            return {locale_code: data}
+
+        except Et.ParseError as e:
+            return self._throw(f"Error parsing XML file '{filename}': {e}", ParseError)
+        except FileNotFoundError:
+            return self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
+        except Exception as e:
+            return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
+
+    def save(self, filepath: Union[str, Path], data: Dict[str, Any]):
+        """Save localization data to an XML file."""
+        if not data:
+            self._throw(f"Cannot save empty data to '{filepath}'", ValueError)
+
+        filepath = Path(filepath)
+        root_key = next(iter(data))
+        root_content = data[root_key]
+        root_tag = self._root_tags.get(root_key, "locale")
+        root = Et.Element(root_tag)
+
+        if isinstance(root_content, str):
+            root.text = root_content
+        elif isinstance(root_content, dict):
+            self._dict_to_etree(root_content, root, root_key)
+
+        tree = Et.ElementTree(root)
+        if hasattr(Et, "indent"):
+            Et.indent(tree)
+
+        with open(filepath, "wb") as f:
+            tree.write(f, encoding="utf-8", xml_declaration=True)
+
+    def _etree_to_dict(self, node: Et.Element, locale_code: str = "", path: str = "") -> Union[Dict, List, str]:
+        if node.attrib.get("list", "").lower() == "true":
+            if locale_code and path:
+                tag_dict = self._explicit_lists.setdefault(locale_code, {})
+                tag_dict[path] = node[0].tag if len(node) > 0 else "item"
+
+            return [self._etree_to_dict(child, locale_code, f"{path}.item") for child in node]
 
         has_children = len(node) > 0
-        inline_childrens = has_children and all(child.tag in self.INLINE_TAGS for child in node)
-        if not has_children or inline_childrens:
+        if not has_children or all(getattr(child, "tag", None) in self.INLINE_TAGS for child in node):
             return self._get_inner_xml(node)
 
         result: Dict[str, Any] = {}
         for child in node:
-            child_data = self._etree_to_dict(child)
-            if child.tag in result:
-                if not isinstance(result[child.tag], list):
-                    result[child.tag] = [result[child.tag]]
-                result[child.tag].append(child_data)
+            if callable(child.tag):  # ElementTree uses callables for Comments
+                result[f"comment_{id(child)}"] = self._etree_to_dict(child, locale_code, path)
+                continue
+
+            child_tag = str(child.tag)
+            child_path = f"{path}.{child_tag}" if path else child_tag
+            child_data = self._etree_to_dict(child, locale_code, child_path)
+
+            if child_tag in result:
+                existing = result[child_tag]
+                if isinstance(existing, list):
+                    existing.append(child_data)
+                else:
+                    result[child_tag] = [existing, child_data]
             else:
-                result[child.tag] = child_data
+                result[child_tag] = child_data
 
         return result
 
+    def _dict_to_etree(self, data: Dict[str, Any], parent: Et.Element, locale_code: str = "", path: str = "") -> None:
+        for key, value in data.items():
+            if key.startswith("comment_"):
+                parent.append(Et.Comment(str(value)))
+                continue
+
+            current_path = f"{path}.{key}" if path else key
+            item_tag = self._explicit_lists.get(locale_code, {}).get(current_path)
+            is_explicit = item_tag is not None or (isinstance(value, list) and any(isinstance(i, list) for i in value))
+
+            if isinstance(value, list) and not is_explicit:
+                for item in value:
+                    child = Et.SubElement(parent, key)
+                    self._set_node_value(child, item, locale_code, current_path)
+            else:
+                attrib = {"list": "true"} if is_explicit else {}
+                child = Et.SubElement(parent, key, attrib)
+                self._set_node_value(child, value, locale_code, current_path)
+
+    def _set_node_value(self, node: Et.Element, value: Any, locale_code: str, path: str) -> None:
+        if isinstance(value, dict):
+            self._dict_to_etree(value, node, locale_code, path)
+            return
+
+        if isinstance(value, list):
+            item_tag = self._explicit_lists.get(locale_code, {}).get(path) or "item"
+            for item in value:
+                attrib = {"list": "true"} if isinstance(item, list) else {}
+                item_node = Et.SubElement(node, item_tag, attrib)
+                self._set_node_value(item_node, item, locale_code, f"{path}.item")
+            return
+
+        text_val = str(value)
+        if "<" in text_val and ">" in text_val:
+            try:
+                fragment = Et.fromstring(f"<root>{text_val}</root>")
+                node.text = fragment.text
+                node.extend(list(fragment))
+                return
+            except Et.ParseError:
+                pass
+
+        node.text = text_val
+
     @staticmethod
-    def _get_inner_xml(node) -> str:
+    def _get_inner_xml(node: Et.Element) -> str:
         parts = [node.text or ""]
 
         for child in node:
-            child_str = Et.tostring(child, encoding="utf-8")
-            parts.append(child_str)
+            parts.append(Et.tostring(child, encoding="unicode"))
 
         return "".join(parts)
-
-    def _validate(self, filepath: Union[str, Path], data: dict, path: Optional[List[str]] = None):
-        path = path or []
-        for key in data.keys():
-            if not isinstance(key, str):
-                self._throw(
-                    f"XML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if not key.isidentifier():
-                self._throw(
-                    f"XML key '{key}' is not a valid Python identifier. "
-                    f"Problem found at path: '{':'.join(map(str, path + [key]))}' "
-                    f"in file: {filepath}",
-                    InvalidLocaleIdentifierError,
-                )
-
-            if isinstance(data[key], dict):
-                self._validate(filepath, data[key], path + [key])
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
         if self._strict:
             raise exc_type(msg)
-        else:
-            self._logger.log(lvl, msg)
-            return {}
+        self._logger.log(lvl, msg)
+        return {}

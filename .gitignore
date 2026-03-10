@@ -10,3 +10,5 @@ test_locales
 site/
 build/
 .*
+*.cache
+studio_users.json

@@ -5,7 +5,7 @@
     <a href="https://pypi.org/project/doti18n/"><img src="https://badge.fury.io/py/doti18n.svg" alt="PyPI Version"></a> <a href="https://github.com/darkj3suss/doti18n/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </div>
 
-**doti18n** is a Python library that allows you to access localization data (YAML, JSON, XML) using dot-notation instead of dictionary lookups. 
+**doti18n** is a Python library that allows you to access localization data (YAML, JSON, XML, TOML) using dot-notation instead of dictionary lookups. 
 
 It focuses on type safety by generating `.pyi` stubs, allowing IDEs to provide autocompletion and enabling linters to catch missing keys or other errors.
 
@@ -55,5 +55,5 @@ You can configure how the library handles missing keys:
 ## Next Steps
 - **[Getting started](getting_started.md)**: Installation and initial setup.
 - **[Usage](usage/supported_formats.md)**: Supported formats (YAML, JSON, XML), pluralization examples, and interpolation(formatting).
-- **[CLI](cli/stub.md)**: How to generate type definitions for your project.
+- **[CLI](cli/stub.md)**: Type stubs, linting, and the translation studio.
 - **[Cheatsheet](cheatsheet.md)**: Quick reference for common use cases and patterns.
