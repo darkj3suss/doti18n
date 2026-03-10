@@ -1,11 +1,11 @@
 [![PyPI version](https://badge.fury.io/py/doti18n.svg)](https://pypi.org/project/doti18n/) [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/darkj3suss/doti18n/blob/main/LICENSE)
 
-<div align="display: flex; justify-content: center;">
+<div align="center">
   <img src="https://i.ibb.co/0RWMD4HM/logo.png" alt="doti18n" width="90%"/>
   <br>
-  <b>Type-safe localization library for Python.</b>
+  <b>Modern, type-safe i18n / l10n library for Python.</b>
   <br>
-  Access YAML, JSON, XML and TOML translations using dot-notation.
+  The alternative to standart i18n libraries with dot-notation, ICU Message Format, and IDE autocompletion.
 </div>
 
 ---
@@ -22,13 +22,17 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
 *   **Type Safety:** Generate stubs to get full IDE support and catch typos instantly.
 *   **Advanced ICUMF:** Full support for **ICU Message Format** including nested `select`, `plural`, and custom formatters.
 *   **Pluralization:** Robust support powered by [Babel](https://babel.pocoo.org/).
-*   **Format Agnostic:** Supports YAML, JSON, XML and TOML out of the box.
+*   **Format Agnostic:** Supports YAML, JSON, XML, TOML out of the box.
 *   **Safety Modes:** 
     *   **Strict:** Raises exceptions for missing keys (good for dev/test).
     *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
 *   **Fallback:** Automatically falls back to the default locale if a key is missing.
+*   **Macros:** Define reusable snippets for common patterns (e.g., reusable gender-select ICU snippets).
+*   **Powerful CLI:** Generate stubs, lint for missing keys, and run a web-based translation studio.
 
 ## Installation
+
+> **Requires Python 3.11+**
 
 ```bash
 pip install doti18n
@@ -111,8 +115,9 @@ print(en.loot_msg(hero="Merlin", type="potion", count=5))
 # Output: Merlin found 5 healing potions in the chest.
 ```
 
-## CLI & Type Safety
+## CLI
 
+### Stub Generation / Type Safety
 doti18n comes with a CLI to generate type stubs (`.pyi`).
 
 **Why use it?**
@@ -137,14 +142,47 @@ python -m doti18n stub --clean
 
 > **Note:** Run this inside your virtual environment to ensure stubs are generated for the installed package.
 
+### Lint
+Scan your translation files for missing keys, type mismatches, and structural issues across locales.
+
+```bash
+# Lint all locales against the default language (en)
+doti18n lint locales/
+
+# Lint against a specific source language
+doti18n lint locales/ -lang fr
+```
+
+### Studio
+A web-based translation editor that runs locally.
+It lets you browse, edit, and save translations in real time from the browser. 
+Multiple users can work simultaneously — edits are synced via WebSocket.
+
+Studio requires extra dependencies:
+```bash
+pip install doti18n[studio]
+```
+
+First, create a user:
+```bash
+doti18n studio add-user admin mypassword
+```
+
+Then start the server:
+```bash
+doti18n studio run locales/
+```
+
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000), log in, and you'll see all your locales and keys ready to edit.
+
+
 ## Project Status
 
 **Alpha Stage:** The API is stable but may evolve before the 1.0.0 release. Feedback and feature requests are highly appreciated!
 
 
 ## Documentation
-Documentation is available at:  
-https://darkj3suss.github.io/doti18n/
+Documentation is available at [darkj3suss.github.io/doti18n](https://darkj3suss.github.io/doti18n/).
 
 ## License
 

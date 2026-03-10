@@ -12,7 +12,9 @@ license = { text = "MIT" }
 authors = [
     {name = "darkj3suss", email = "asdzxco@protonmail.com"}
 ]
-keywords = ["localization", "i18n", "l10n", "translate", "yaml", "json", "yml", "toml", "xml", "text processing", "dot access", "pluralization", "babel"]
+keywords = ["localization", "i18n", "l10n", "translate", "translation", "yaml", "json", "yml", "toml", "xml",
+    "text processing", "dot access", "pluralization", "babel", "icu", "icumf", "icu message format", "message format",
+    "gettext", "fastapi", "flask", "django", "web", "cli"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
