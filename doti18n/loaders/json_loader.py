@@ -23,7 +23,7 @@ class JsonLoader(BaseLoader):
         self._strict = strict
 
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
-        """Load and validate locale data from a JSON file."""
+        """Load locale data from a JSON file."""
         filename = os.path.basename(filepath)
         try:
             with open(filepath, encoding="utf-8") as f:
@@ -46,6 +46,10 @@ class JsonLoader(BaseLoader):
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
         return None
+
+    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+        """Load locale data from a JSON file."""
+        return self.load(filepath)
 
     @staticmethod
     def save(filepath: Union[str, Path], data: Dict[str, Dict]):

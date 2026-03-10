@@ -62,6 +62,7 @@ class XmlLoader(BaseLoader):
         self._root_tags: Dict[str, str] = {}
         self._explicit_lists: Dict[str, Dict[str, str]] = {}
 
+    # ruff: noqa: C901
     def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
         """Load and processes localization data from an XML file."""
         filepath = Path(filepath)
@@ -99,6 +100,44 @@ class XmlLoader(BaseLoader):
                     processed.append({"locale": loc_code, **translations})
 
                 return processed
+
+            if not isinstance(data, dict):
+                return self._throw(
+                    f"File '{filename}': expected a dictionary of translations, but got {type(data).__name__}",
+                    InvalidLocaleDocumentError,
+                )
+
+            self._root_tags[locale_code] = root.tag
+            self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
+            return {locale_code: data}
+
+        except Et.ParseError as e:
+            return self._throw(f"Error parsing XML file '{filename}': {e}", ParseError)
+        except FileNotFoundError:
+            return self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
+        except Exception as e:
+            return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
+
+    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+        """Load and process localization data from an XML file, preserving comments."""
+        filepath = Path(filepath)
+        filename = filepath.name
+
+        try:
+            parser = XMLParser(target=Parser())
+            tree = Et.parse(filepath, parser=parser)
+            root = tree.getroot()
+            multiple = root.tag in ("locales", "localizations", "translations")
+            locale_code = "" if multiple else _get_locale_code(filename)
+            data = self._etree_to_dict(root, locale_code)
+            if not data:
+                return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
+
+            if multiple:
+                self._throw(
+                    "File '{filename}' contains multiple locales, which is not supported to load with comments.",
+                    NotImplementedError,
+                )
 
             if not isinstance(data, dict):
                 return self._throw(
