@@ -496,6 +496,16 @@ doti18n lint locales/ --source fr # Lint against 'fr'
 doti18n lint locales/ --icumf     # Enable ICU syntax validation
 ```
 
+### 3. Studio
+A web-based translation editor. Multiple users can edit translations simultaneously with real-time sync.  
+For more information, see [Studio](cli/studio.md).
+
+```bash
+pip install doti18n[studio]              # Install studio dependencies
+doti18n studio add-user admin mypassword # Create a user
+doti18n studio run locales/              # Start the editor on http://127.0.0.1:5000
+```
+
 ---
 
 ## Advanced Customization

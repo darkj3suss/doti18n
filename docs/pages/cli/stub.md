@@ -1,9 +1,9 @@
-## Description
+## What is it?
 The CLI tool generates type stubs (`.pyi`) based on your translation files. 
 This enables static type checking and IDE autocompletion for keys and string formatting arguments.
 
 ## Example
-Given the following structure:
+Imagine you have this structure:
 
 ```text
 project_root/  

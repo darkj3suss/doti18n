@@ -1,4 +1,4 @@
-If you don't read the [setup instruction](./setup.md), please do so first.
+If you haven't read the [setup instruction](./setup.md), please do so first.
 
 === "Pyrogram"
     ```python
@@ -29,7 +29,7 @@ If you don't read the [setup instruction](./setup.md), please do so first.
     dp = Dispatcher()
     
     @dp.message(CommandStart())
-    async def main(message: Message):
+    async def start_handler(message: Message):
         t = i18n[message.from_user.language_code].main
         await message.reply(t.hello)
     

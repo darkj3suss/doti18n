@@ -12,12 +12,13 @@ license = { text = "MIT" }
 authors = [
     {name = "darkj3suss", email = "asdzxco@protonmail.com"}
 ]
-keywords = ["localization", "i18n", "l10n", "translate", "yaml", "json", "yml", "text processing", "dot access", "pluralization", "babel"]
+keywords = ["localization", "i18n", "l10n", "translate", "yaml", "json", "yml", "toml", "xml", "text processing", "dot access", "pluralization", "babel"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -26,15 +27,22 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
 ]
 dependencies = [
-    "babel>=2.17.0",
-    "colorlog>=6.7.0",
+    "babel==2.17.0",
+    "colorlog==6.10.1",
 ]
 
 
 [project.optional-dependencies]
 yaml = [
-    "PyYAML>=6.0"
+    "PyYAML==6.0.2",
 ]
+studio = [
+    "tenjin==1.1.1",
+    "microdot==2.6.0",
+    "tomlkit==0.14.0",
+    "ruamel.yaml==0.19.1",
+]
+
 
 [project.scripts]
 doti18n = "doti18n.cli:main"
@@ -58,12 +66,13 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "vendor"
 ]
 
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "C90", "N", "D"]
-ignore = ["D203", "D211", "D104", "D212", "D100", "F403", "F405"]
+ignore = ["D203", "D211", "D104", "D212", "D100", "F403", "F405", "E402"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["doti18n"]
@@ -84,6 +93,7 @@ exclude = '''
   | buck-out
   | build
   | dist
+  | vendor
 )/
 '''
 
@@ -91,7 +101,7 @@ exclude = '''
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
-exclude = ["venv", "tests/"]
+exclude = ["venv", "tests/", "vendor/"]
 
 
 [project.urls]
