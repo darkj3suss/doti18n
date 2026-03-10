@@ -1,6 +1,7 @@
 ## What is it?
 A web-based translation editor that runs locally.
-It lets you browse, edit, and save translations in real time from the browser. Multiple users can work simultaneously — edits are synced via WebSocket.
+It lets you browse, edit, and save translations in real time from the browser. 
+Multiple users can work simultaneously — edits are synced via WebSocket.
 
 Studio requires extra dependencies:
 ```bash

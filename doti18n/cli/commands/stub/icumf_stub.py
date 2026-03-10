@@ -52,11 +52,14 @@ def generate_icumf_stub(name: str, message: str) -> Tuple[str, bool]:
 
     parts = ["self", "*"]
     sorted_kwargs = sorted(list(required_kwargs.keys()))
+    sorted_kwargs.append("formatter")
 
     for k in sorted_kwargs:
         arg_type = required_kwargs[k]
         if k == "count":
             arg_type = "int"
+        if k == "formatter":
+            arg_type = "BaseFormatter"
         parts.append(f"{k}: {arg_type}")
 
     sig_str = ", ".join(parts)
