@@ -6,13 +6,25 @@ let sourceTranslations = {};
 let activeKey = null;
 let lockedKeys = {};
 let statusInterval = null;
+const keyElementMap = new Map();
 
 const textarea = document.getElementById('editor-textarea');
 
 function findLabelByKey(key) {
-    return document.querySelector(`.tree-label[data-key="${CSS.escape(key)}"]`);
+    return keyElementMap.get(key);
 }
 
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 function connectWS() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -252,7 +264,6 @@ window.addEventListener('mouseup', () => {
     }
 });
 
-// Tree Rendering
 async function loadConfig() {
     try {
         const r = await fetch('/api/config');
@@ -293,10 +304,32 @@ async function loadTranslations(locale) {
 
 function renderTree() {
     const container = document.getElementById('keys-tree');
+    keyElementMap.clear();
     container.replaceChildren();
+    const newContainer = container.cloneNode(false);
+    container.parentNode.replaceChild(newContainer, container);
+    newContainer.addEventListener('click', (e) => {
+        const label = e.target.closest('.tree-label');
+        if (!label) return;
+
+        const key = label.dataset.key;
+        if (label.classList.contains('tree-folder')) {
+            e.stopPropagation();
+            label.classList.toggle('open');
+            const childrenDiv = label.parentNode.querySelector('.tree-children');
+            if (childrenDiv) childrenDiv.classList.toggle('open');
+            updateParentLockStatus(label);
+        } else {
+            e.stopPropagation();
+            selectKey(key);
+        }
+    });
 
     const treeData = buildTreeData(translations);
-    renderNodes(treeData, container, '');
+    const fragment = document.createDocumentFragment();
+    renderNodes(treeData, fragment, '');
+    newContainer.appendChild(fragment);
+    updateStatusDots(newContainer);
 }
 
 function buildTreeData(obj) {
@@ -330,8 +363,8 @@ function renderNodes(nodes, container, prefix) {
         text.className = 'label-text';
         text.textContent = node.key;
         label.appendChild(text);
-
         label.dataset.key = fullKey;
+        keyElementMap.set(fullKey, label);
         nodeDiv.appendChild(label);
 
         if (node.type === 'folder') {
@@ -339,24 +372,9 @@ function renderNodes(nodes, container, prefix) {
             childrenDiv.className = 'tree-children';
             renderNodes(node.children, childrenDiv, fullKey);
             nodeDiv.appendChild(childrenDiv);
-
-            label.onclick = (e) => {
-                e.stopPropagation();
-                label.classList.toggle('open');
-                childrenDiv.classList.toggle('open');
-                updateParentLockStatus(label);
-            };
-        } else {
-            label.onclick = (e) => {
-                e.stopPropagation();
-                selectKey(fullKey);
-            };
         }
-
         container.appendChild(nodeDiv);
     });
-
-    updateStatusDots(container);
 }
 
 function updateStatusDots(container) {
@@ -654,11 +672,16 @@ function applyFilters() {
     allNodes.forEach(n => n.style.display = 'none');
 
     allFiles.forEach(file => {
-        const key = file.dataset.key.toLowerCase();
+        const originalKey = file.dataset.key;
+        const key = originalKey.toLowerCase();
+
+        const value = getKeyValue(translations, originalKey);
+        const valueStr = (value && typeof value === 'string') ? value.toLowerCase() : '';
+
         const dot = file.querySelector('.status-dot');
         const isUntranslated = dot && dot.classList.contains('status-red');
 
-        const matchesQuery = !query || key.includes(query);
+        const matchesQuery = !query || key.includes(query) || valueStr.includes(query);
         const matchesUntranslated = !untranslatedOnly || isUntranslated;
 
         if (matchesQuery && matchesUntranslated) {
@@ -682,7 +705,7 @@ function applyFilters() {
 
 document.getElementById('untranslated-only').addEventListener('change', applyFilters);
 
-document.getElementById('search-keys').addEventListener('input', applyFilters);
+document.getElementById('search-keys').addEventListener('input', debounce(applyFilters, 300));
 
 
 connectWS();

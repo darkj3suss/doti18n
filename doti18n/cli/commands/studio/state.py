@@ -116,7 +116,9 @@ class StudioState:
                         current[key] = {}
                     current = current[key]
                 else:
-                    self.logger.error(f"Cannot traverse into {type(current).__name__} with key '{key}' in path '{key_path}'")
+                    self.logger.error(
+                        f"Cannot traverse into {type(current).__name__} with key '{key}' in path '{key_path}'"
+                    )
                     return
 
             # Set the final value

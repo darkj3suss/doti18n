@@ -11,11 +11,9 @@ from typing import Any, Callable, Dict, Optional, Union
 from microdot.microdot import redirect
 
 SESSION_TTL = int(os.environ.get("DOTI18N_SESSION_TTL", 3600))
+MAX_FAILED_ATTEMPTS = int(os.environ.get("DOTI18N_MAX_ATTEMPTS", 24 * 60 * 60))
+BAN_TIME = int(os.environ.get("DOTI18N_BAN_TIME", 24 * 60 * 60))
 SESSIONS: Dict[str, Dict[str, Any]] = {}
-
-MAX_FAILED_ATTEMPTS = 5
-BAN_DURATION_SEC = 24 * 60 * 60
-
 _auth_file: Optional[Path] = None
 
 
@@ -87,7 +85,8 @@ def save_auth_data(data: dict):
 
 def load_users() -> dict:
     """Load users from the auth file. Returns an empty dict if the file doesn't exist or is invalid."""
-    return load_auth_data().get("users", {})
+    data: dict = load_auth_data().get("users", {})
+    return data if isinstance(data, dict) else {}
 
 
 def save_users(users: dict):
@@ -144,7 +143,7 @@ def record_failed_attempt(ip: str):
     banned_info["attempts"] += 1
 
     if banned_info["attempts"] >= MAX_FAILED_ATTEMPTS:
-        banned_info["ban_until"] = time.time() + BAN_DURATION_SEC
+        banned_info["ban_until"] = time.time() + BAN_TIME
 
     data["banned"][ip] = banned_info
     save_auth_data(data)
