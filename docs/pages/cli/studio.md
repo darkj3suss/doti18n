@@ -102,3 +102,15 @@ By default it's `studio_users.json` in the working directory. Override it if nee
 export DOTI18N_AUTH_FILE=/path/to/users.json
 ```
 
+**Max attempts:**
+Limit how many times a user can try to log in before being temporarily blocked (default is 5).
+```bash
+export DOTI18N_MAX_ATTEMPTS=3
+```
+
+**Ban time:**
+Set how long a user is blocked after exceeding max attempts (default is 86,400 seconds (one day)).
+```bash
+export DOTI18N_BAN_TIME=3600
+```
+
