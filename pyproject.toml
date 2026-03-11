@@ -46,6 +46,9 @@ studio = [
 ]
 
 
+[tool.setuptools.package-data]
+doti18n = ["cli/commands/studio/templates/*.html", "cli/commands/studio/static/*"]
+
 [project.scripts]
 doti18n = "doti18n.cli:main"
 
