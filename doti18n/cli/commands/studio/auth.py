@@ -13,6 +13,9 @@ from microdot.microdot import redirect
 SESSION_TTL = int(os.environ.get("DOTI18N_SESSION_TTL", 3600))
 SESSIONS: Dict[str, Dict[str, Any]] = {}
 
+MAX_FAILED_ATTEMPTS = 5
+BAN_DURATION_SEC = 24 * 60 * 60
+
 _auth_file: Optional[Path] = None
 
 
@@ -49,26 +52,49 @@ def verify_password(stored_password: str, provided_password: str) -> bool:
     return hash_password(provided_password, salt) == stored_password
 
 
-def load_users() -> dict:
-    """Load users from the auth file. Returns an empty dict if the file doesn't exist or is invalid."""
+def load_auth_data() -> dict:
+    """Load authentication data including users and banned IPs."""
     auth_file = _get_auth_file()
     if not auth_file.exists():
-        return {}
+        return {"users": {}, "banned": {}}
 
     try:
         with open(auth_file, encoding="utf-8") as f:
-            data: dict = json.load(f)
-            return data if isinstance(data, dict) else {}
+            data = json.load(f)
+            if not isinstance(data, dict):
+                return {"users": {}, "banned": {}}
+
+            if "users" not in data and "banned" not in data:
+                return {"users": data, "banned": {}}
+
+            if "users" not in data:
+                data["users"] = {}
+            if "banned" not in data:
+                data["banned"] = {}
+
+            return data
 
     except (json.JSONDecodeError, IOError):
-        return {}
+        return {"users": {}, "banned": {}}
+
+
+def save_auth_data(data: dict):
+    """Save authentication data including users and banned IPs."""
+    auth_file = _get_auth_file()
+    with open(auth_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+def load_users() -> dict:
+    """Load users from the auth file. Returns an empty dict if the file doesn't exist or is invalid."""
+    return load_auth_data().get("users", {})
 
 
 def save_users(users: dict):
     """Save users to the auth file. Overwrites existing content. Creates the file if it doesn't exist."""
-    auth_file = _get_auth_file()
-    with open(auth_file, "w", encoding="utf-8") as f:
-        json.dump(users, f, indent=4, ensure_ascii=False)
+    data = load_auth_data()
+    data["users"] = users
+    save_auth_data(data)
 
 
 def add_user(username: str, password: str):
@@ -85,6 +111,51 @@ def verify_user(username: str, password: str) -> bool:
         return False
 
     return verify_password(users[username], password)
+
+
+def is_ip_banned(ip: str) -> bool:
+    """Check if an IP address is banned. Clears the ban if the duration has expired."""
+    data = load_auth_data()
+    banned_info = data["banned"].get(ip)
+
+    if not banned_info:
+        return False
+
+    ban_until = banned_info.get("ban_until", 0)
+
+    if ban_until > 0 and time.time() < ban_until:
+        return True
+
+    if 0 < ban_until <= time.time():
+        del data["banned"][ip]
+        save_auth_data(data)
+
+    return False
+
+
+def record_failed_attempt(ip: str):
+    """Record a failed login attempt for an IP. Bans the IP if the max limit is reached."""
+    data = load_auth_data()
+    banned_info = data["banned"].get(ip, {"attempts": 0, "ban_until": 0})
+
+    if banned_info.get("ban_until", 0) > time.time():
+        return
+
+    banned_info["attempts"] += 1
+
+    if banned_info["attempts"] >= MAX_FAILED_ATTEMPTS:
+        banned_info["ban_until"] = time.time() + BAN_DURATION_SEC
+
+    data["banned"][ip] = banned_info
+    save_auth_data(data)
+
+
+def clear_failed_attempts(ip: str):
+    """Clear failed login attempts for an IP upon successful login."""
+    data = load_auth_data()
+    if ip in data["banned"]:
+        del data["banned"][ip]
+        save_auth_data(data)
 
 
 def create_session(username: str, ip_address: str) -> str:

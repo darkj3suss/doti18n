@@ -7,7 +7,10 @@ from tenjin import Engine
 # noinspection PyUnresolvedReferences
 from tenjin.helpers import *
 
-from .auth import create_session, delete_session, login_required, verify_user
+from .auth import (
+    create_session, delete_session, login_required, verify_user,
+    is_ip_banned, record_failed_attempt, clear_failed_attempts
+)
 from .server import app
 from .state import state
 
@@ -27,6 +30,9 @@ def index(_request: Request):
 @app.get("/login")
 def login_form(request: Request):
     """Render the login form."""
+    if is_ip_banned(request.client_addr[0]):
+        return "Access denied. Your IP is temporarily banned due to too many failed login attempts.", 403
+
     error = request.args.get("error")
     csrf_token = secrets.token_hex(32)
     response = (
@@ -40,23 +46,33 @@ def login_form(request: Request):
 @app.post("/login")
 def login(request: Request):
     """Process the login form submission. Verifies the user's credentials and creates a session if valid."""
+    ip_address = request.client_addr[0]
+
+    if is_ip_banned(ip_address):
+        return "Access denied. Your IP is temporarily banned due to too many failed login attempts.", 403
+
     form = request.form
     if not form:
+        record_failed_attempt(ip_address)
         return redirect("/login?error=1")
 
     username = form.get("username", "")
     password = form.get("password", "")
 
     if not username or not password:
+        record_failed_attempt(ip_address)
         return redirect("/login?error=1")
 
     if verify_user(username, password):
+        clear_failed_attempts(ip_address)
+
         is_localhost = request.headers.get("Host", "").split(":")[0] in ("127.0.0.1", "localhost", "::1")
         response = redirect("/")
-        token = create_session(username, request.client_addr[0])
+        token = create_session(username, ip_address)
         response.set_cookie("session", token, http_only=True, secure=not is_localhost)
         return response
 
+    record_failed_attempt(ip_address)
     return redirect("/login?error=1")
 
 
