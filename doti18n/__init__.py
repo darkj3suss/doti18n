@@ -1,5 +1,5 @@
 from .locale_data import LocaleData
 from .locale_translator import LocaleTranslator
 
-__version__ = "0.9.2"
+__version__ = "0.10.0"
 __all__ = ["LocaleData", "LocaleTranslator"]

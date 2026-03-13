@@ -1,31 +1,13 @@
-doti18n supports three formatting styles out of the box. 
-You can even mix them in a single string (though consistency is highly recommended).
+doti18n supports python-style formatting out of the box.
 
 ### Supported Syntax
 
-**1. Python-style** (Curly braces `{}`)
+**Python-style** (Curly braces `{}`)
 
 - `"Hello, {}!"` (positional)
 - `"Hello, {name}!"` (named)
 - `"Balance: {count:.2f}"` (with format spec)
 
-**2. Shell-style** (Dollar sign `$`)
-
-- `"Hello, $name!"`
-- `"Hello, ${name}!"`
-- `"Hello, $1!"` (positional/indexed)
-
-**3. C-style** (Percent sign `%`)
-
-- `"Hello, %s!"` (positional)
-- `"Hello, %(name)s!"` (named)
-
-### Escaping
-To use literal characters that are reserved for formatting, double them:
-
-- `{{` and `}}` → `{` and `}`
-- `$$` → `$`
-- `%%` → `%`
 
 !!! note
     Escaping is only processed when the string is **called** as a function. If accessed as a raw attribute, the string is returned "as-is" (with double characters intact).
@@ -38,8 +20,7 @@ To use literal characters that are reserved for formatting, double them:
     `locales/en.yaml`:
     ```yaml
     balance_python: "Your balance is {amount:.2f} dollars."
-    greeting_c: "Hello, %(name)s!"
-    farewell_shell: "Goodbye, $name!"
+    hello: "Hello, {name}!"
     escaped_str: "Literal braces: {{ and }}."
     ```
 
@@ -48,8 +29,7 @@ To use literal characters that are reserved for formatting, double them:
     ```json
     {
         "balance_python": "Your balance is {amount:.2f} dollars.",
-        "greeting_c": "Hello, %(name)s!",
-        "farewell_shell": "Goodbye, $name!",
+        "hello": "Hello, {name}!",
         "escaped_str": "Literal braces: {{ and }}."
     }
     ```
@@ -59,8 +39,7 @@ To use literal characters that are reserved for formatting, double them:
     ```xml
     <locale>
         <balance_python>Your balance is {amount:.2f} dollars.</balance_python>
-        <greeting_c>Hello, %(name)s!</greeting_c>
-        <farewell_shell>Goodbye, $name!</farewell_shell>
+        <hello>Hello, {name}!</hello>
         <escaped_str>Literal braces: {{ and }}.</escaped_str>
     </locale>
     ```
@@ -68,9 +47,8 @@ To use literal characters that are reserved for formatting, double them:
 === "TOML"
     `locales/en.toml`:
     ```toml
-    balance_python = "Your balance is {amount:.2f} dollars."
-    greeting_c = "Hello, %(name)s!"
-    farewell_shell = "Goodbye, $name!"
+    balance = "Your balance is {amount:.2f} dollars."
+    hello = "Hello, {name}!"
     escaped_str = "Literal braces: {{ and }}."
     ```
 
@@ -83,8 +61,7 @@ i18n = LocaleData("locales")
 
 # 1. Standard Formatting
 print(i18n["en"].balance_python(amount=1234.543))   # Output: Your balance is 1234.54 dollars.
-print(i18n["en"].greeting_c(name="Alice"))          # Output: Hello, Alice!
-print(i18n["en"].farewell_shell(name="Bob"))        # Output: Goodbye, Bob!
+print(i18n["en"].hello(name="Alice"))               # Output: Hello, Alice!
 
 # 2. Escaped Characters
 print(i18n["en"].escaped_str())                     # Output: Literal braces: { and }.
@@ -95,7 +72,7 @@ If you omit required variables, doti18n **does not crash**. Instead, it removes 
 
 ```python
 print(i18n["en"].balance_python())  # Output: Your balance is dollars.
-print(i18n["en"].greeting_c())      # Output: Hello, !
+print(i18n["en"].hello)             # Output: Hello, !
 ```
 
 !!! tip "Type Safety"

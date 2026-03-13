@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from textwrap import indent
-from typing import Union, Optional
+from typing import Union
 
 from doti18n.utils import _is_plural_dict
 
@@ -10,6 +10,7 @@ from .plural_stub import generate_plural_stub
 from datetime import datetime, UTC
 
 LIBRARY_CODE = """# Generated via doti18n at {time}
+{extra_imports}
 from typing import Any, overload, Optional, Union, Literal, List, Callable, Dict, Tuple
 from pathlib import Path
 
@@ -48,7 +49,6 @@ class Loader:
 
 class LocaleTranslator:
     def get(self, name: str) -> Any: ...
-    def __getattr__(self, name: str) -> Any: ...
 
 class LocaleData:
     def __init__(self, path: Union[str, Path], default_locale: str = "en", strict: bool = False, preload: bool = True, 
@@ -149,18 +149,18 @@ def normalize_name(name: str) -> str:
 
 
 # ruff: noqa C901
-def generate_class(cls: Union[StubLocale, StubNamespace]):
+def generate_class(cls: Union[StubLocale, StubNamespace], types: dict) -> str:
     """Generate stub class code for a given StubLocale or StubNamespace."""
     lines = []
 
     if isinstance(cls, StubNamespace):
-        lines.append(f"class {normalize_name(cls.name)}:")
+        lines.append(f"class {normalize_name(cls.name)}(LocaleTranslator):")
     else:
         lines.append(f"class {cls.name.capitalize()}Locale(LocaleTranslator):")
 
     for key, value in cls.args.items():
         if value is None:
-            lines.append(f"    {key}: None = None")
+            lines.append(f"    {key} = None")
             continue
 
         if isinstance(value, str):
@@ -168,7 +168,7 @@ def generate_class(cls: Union[StubLocale, StubNamespace]):
             if is_func:
                 lines.append(f"    {sig}")
             else:
-                code, _ = generate_formatted_stub(key, value)
+                code, _ = generate_formatted_stub(key, value, types)
                 lines.append(f"    {code}")
 
             continue
@@ -220,13 +220,45 @@ def generate_class(cls: Union[StubLocale, StubNamespace]):
     return "\n".join(lines) + "\n\n"
 
 
+STANDARD_TYPES = {
+    "str", "int", "float", "bool", "list", "dict", "set", "tuple",
+    "Any", "Union", "Callable", "Optional", "Literal", "List", "Dict", "Tuple"
+}
+
+
+# TODO: add support for types like Union[Type1, Type2]
+def extra_imports(types: dict) -> str:
+    imports = set()
+
+    for path in types.values():
+        if path in STANDARD_TYPES:
+            continue
+
+        path_parts = path.split(".")
+        if len(path_parts) > 1:
+            module = ".".join(path_parts[:-1])
+            class_name = path_parts[-1]
+            imports.add(f"from {module} import {class_name}\n")
+        else:
+            imports.add(f"import {path}\n")
+
+    return "".join(sorted(imports))
+
+
 def generate_code(data: dict, default_locale: str = "en") -> str:
     """Generate stub code for locale data."""
     global LIBRARY_CODE
     code = []
     stub_classes = generate_stub_classes(data)
-    for cls in stub_classes:
+    if types := data[default_locale].get("__types__", None):
+        imports = extra_imports(types)
+        for key, value in types.items():
+            types[key] = value.split(".")[-1]
+    else:
+        types = {}
+        imports = ""
 
+    for cls in stub_classes:
         def process_childs(stub_namespace: StubNamespace):
             nonlocal code
             for value in stub_namespace.childs.values():
@@ -237,7 +269,7 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
                     if item:
                         process_childs(item)
 
-            code.append(generate_class(stub_namespace))
+            code.append(generate_class(stub_namespace, types))
 
         for child in cls.childs.values():
             process_childs(child)
@@ -247,7 +279,7 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
                 if item:
                     process_childs(item)
 
-        code.append(generate_class(cls))
+        code.append(generate_class(cls, types))
         LIBRARY_CODE += (
             f"\n    @overload"
             f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
@@ -259,4 +291,4 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
     )
 
     time = datetime.now(UTC).strftime("%Y.%m.%d %H:%M:%S UTC")
-    return LIBRARY_CODE.format(stub_code="".join(code), time=time)
+    return LIBRARY_CODE.format(stub_code="".join(code), time=time, extra_imports=imports)

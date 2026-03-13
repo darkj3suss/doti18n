@@ -58,7 +58,7 @@ body {
     padding: 0; 
     background: var(--bg-body); 
     color: var(--text-main);
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -361,3 +361,65 @@ main {
 .login-box input { display: block; width: 100%; margin: 1.2rem 0; padding: 0.7rem; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; background: var(--bg-body); color: var(--text-main);}
 .login-box button { width: 100%; background: var(--primary); color: white; border: none; padding: 0.7rem; cursor: pointer; border-radius: 4px; font-weight: bold; }
 .login-box button:hover { background: var(--primary-hover); }
+
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    #split-container {
+        flex-direction: column;
+    }
+
+    #left-panel {
+        width: 100% !important;
+        height: 40% !important;
+        min-height: 40% !important;
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    #resizer {
+        display: none;
+    }
+
+    #right-panel {
+        width: 100% !important;
+        flex: 1;
+        padding: 10px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    #editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .editor-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    header {
+        padding: 0.5rem 1rem;
+    }
+
+    header h1 {
+        font-size: 1rem;
+    }
+
+    .tree-controls button {
+        font-size: 0.75rem;
+        padding: 5px 8px;
+    }
+
+    #editor-header, #editor-footer {
+        padding: 8px 10px;
+        flex-shrink: 0;
+    }
+}
