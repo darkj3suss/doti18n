@@ -1,21 +1,6 @@
 import re
 from typing import Tuple
-
-PLACEHOLDER_REGEX = re.compile(
-    r"""
-        # Escaped sequences: {{, }}
-        (?P<py_escape>\{\{|}}) |
-
-        # Python-style placeholders: {key:fmt}, {0:fmt}, {:fmt}
-        (?P<python>
-            \{
-            (?P<python_key>[^{}:]*)
-            (?P<python_format>:[^}]+)?
-            }
-        )
-    """,
-    re.VERBOSE,
-)
+from doti18n.wrapped.string_wrapper import PLACEHOLDER_REGEX
 
 
 # ruff: noqa C901
