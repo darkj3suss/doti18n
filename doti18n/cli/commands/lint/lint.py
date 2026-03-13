@@ -3,7 +3,7 @@ from typing import Optional
 
 from doti18n.icumf import ICUMF, html_pattern, icumf_pattern
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
-from doti18n.wrapped.string_wrapper import PLACEHOLDER_REGEX
+from ..stub.formatted_stub import PLACEHOLDER_REGEX
 
 logger = logging.getLogger("doti18n.lint")
 PROBLEMS = 0
@@ -95,34 +95,20 @@ def _lint_icumf(locale_code: str, locale_data: str, source_data: str, path: str,
 
 # ruff: noqa: C901
 def _lint_formatted(locale_code: str, locale_data: str, source_data: str, path: str):
-    """Validate formatted placeholders (Python, C, Shell styles)."""
+    """Validate formatted placeholders (Python only)."""
     global PROBLEMS
 
     def extract_fields(text: str) -> set:
         fields = set()
         for match in PLACEHOLDER_REGEX.finditer(text):
             groups = match.groupdict()
-            if groups.get("py_escape") or groups.get("c_escape") or groups.get("shell_escape"):
+            if groups.get("py_escape"):
                 continue
 
             if groups.get("python"):
                 key = groups.get("python_key")
                 fields.add(f"py:{key}" if key else "py:sequential")
 
-            elif groups.get("c_style"):
-                key = groups.get("c_key")
-                index = groups.get("c_index")
-                if key:
-                    fields.add(f"c:key:{key}")
-                elif index:
-                    fields.add(f"c:index:{index}")
-                else:
-                    fields.add("c:sequential")
-
-            elif groups.get("shell"):
-                key = groups.get("shell_braced_key") or groups.get("shell_simple_key")
-                if key:
-                    fields.add(f"sh:{key}")
         return fields
 
     source_fields = extract_fields(source_data)
@@ -134,14 +120,6 @@ def _lint_formatted(locale_code: str, locale_data: str, source_data: str, path: 
     def format_field_name(f):
         if f.startswith("py:"):
             return f[3:] or "{}"
-        if f.startswith("c:key:"):
-            return f[6:]
-        if f.startswith("c:index:"):
-            return f[8:]
-        if f == "c:sequential":
-            return "%s"
-        if f.startswith("sh:"):
-            return f[3:]
         return f
 
     if missing:
