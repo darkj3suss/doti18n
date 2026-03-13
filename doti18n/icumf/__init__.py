@@ -19,7 +19,7 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-        self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs
+        self, strict: bool = True, tag_formatter: Optional[BaseFormatter] = None, cache_size: int = 1024, **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.
@@ -36,7 +36,15 @@ class ICUMF:
         subnumeric_formatters = [name for name, fmt in self.formatters.items() if fmt.is_subnumeric]
         submussage_formatters = [name for name, fmt in self.formatters.items() if fmt.is_submessage]
         self.parser = Parser(subnumeric_formatters, submussage_formatters, **kwargs)
-        self.tag_formatter = tag_formatter(strict)
+        if tag_formatter:
+            if not isinstance(tag_formatter, BaseFormatter):
+                raise TypeError(
+                    f"tag_formatter must be an instance of BaseFormatter, got {type(tag_formatter).__name__}"
+                )
+            self.tag_formatter = tag_formatter
+        else:
+            self.tag_formatter = HTMLFormatter(strict=strict)
+
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
         self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render_)

@@ -21,8 +21,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import logging
 from typing import List, Optional, Union, TypedDict
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
 
@@ -102,6 +101,7 @@ class Parser:
         self.tag_prefix = tag_prefix
         self.allow_format_spaces = allow_format_spaces
         self.require_other = require_other
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def parse(self, message: str) -> List[Node]:
         """Parse the given ICUMF message string into an AST."""
@@ -110,7 +110,12 @@ class Parser:
 
         context: ParserContext = {"msg": message, "len": len(message), "i": 0, "depth": 0}
 
-        result = self._parse_block(context)
+        try:
+            result = self._parse_block(context)
+        except Exception as e:
+            self.logger.error(f"Error parsing message '{message}': {e}", exc_info=True)
+            raise
+
         if context["i"] < context["len"]:
             raise UnexpectedCharError(message[context["i"]], context["i"])
 
