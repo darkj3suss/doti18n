@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "doti18n"
-version = "0.9.3"
+version = "0.10.0"
 description = "Python library for loading localizations with dot access and pluralization."
 readme = { file = "readme.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -47,7 +47,7 @@ studio = [
 
 
 [tool.setuptools.package-data]
-doti18n = ["cli/commands/studio/templates/*.html", "cli/commands/studio/static/*"]
+doti18n = ["cli/commands/studio/templates/*.html", "cli/commands/studio/static/style.css", "cli/commands/studio/static/js/*.js"]
 
 [project.scripts]
 doti18n = "doti18n.cli:main"
