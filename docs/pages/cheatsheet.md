@@ -477,6 +477,53 @@ val = i18n["en"].missing_key
 Generates type definitions for IDE autocompletion and static analysis (mypy).  
 For more information, see [Stub Generation](cli/stub.md).
 
+Place section __types__ in the root of your locale file to specify explicit types for variables.
+The generator will import these types (if needed) into the stub file.
+=== "YAML" 
+    `locales/en.yaml`:
+    ```yaml
+    __types__:
+      name: "str"
+      user: "app.models.User"
+
+    greeting: "Hello, {name}!"
+    user_info: "User {user.name} has email {user.email}."
+    ```
+
+=== "JSON" 
+    `locales/en.json`:
+    ```json
+    {
+      "__types__": {
+        "name": "str",
+        "user": "app.models.User"
+      },
+      "greeting": "Hello, {name}!",
+      "user_info": "User {user.name} has email {user.email}."
+    }
+    ```
+=== "XML"
+    `locales/en.xml`:
+    ```xml
+    <locale>
+      <__types__>
+        <name>str</name>
+        <user>app.models.User</user>
+      </__types__>
+      <greeting>Hello, {name}!</greeting>
+      <user_info>User {user.name} has email {user.email}.</user_info>
+    </locale>
+    ```
+=== "TOML"
+    `locales/en.toml`:
+    ```toml
+    greeting = "Hello, {name}!"
+    user_info = "User {user.name} has email {user.email}."
+    [__types__]
+    name = "str"
+    user = "app.models.User"
+    ```
+
 !!! warning "Virtual Environment"
     Always run the stub generator inside your project's **venv**. It writes directly to the installed package directory.
 
@@ -512,7 +559,7 @@ doti18n studio run locales/              # Start the editor on http://127.0.0.1:
 - **[Custom Formatters](usage/icumf.md#custom-formatters):** Inherit from `BaseFormatter`.
 - **[Custom Loaders](usage/custom_loaders.md):** Inherit from `BaseLoader`.
 - **[Custom Tag Handling (HTML to Markdown, etc.)](usage/icumf.md#tags-html-support):** Pass `tag_formatter=MarkdownFormatter()` to the `ICUMF` configuration. 
-                                                                                        Or call keys with `formatter=MarkdownFormatter()` to apply Markdown formatting at runtime.
+                                                           Or call keys with `formatter=MarkdownFormatter()` to apply Markdown formatting at runtime.
 
 !!! warning "Execution Order"
     Custom loaders and formatters must be defined/imported **before** initializing `LocaleData`(or `Loader`/`ICUMF`).
