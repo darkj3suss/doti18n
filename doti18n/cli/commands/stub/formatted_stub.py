@@ -3,36 +3,15 @@ from typing import Tuple
 
 PLACEHOLDER_REGEX = re.compile(
     r"""
-        # Escaped sequences: {{, }}, %%, $$
+        # Escaped sequences: {{, }}
         (?P<py_escape>\{\{|}}) |
-        (?P<c_escape>%%) |
-        (?P<shell_escape>\$\$) |
 
         # Python-style placeholders: {key:fmt}, {0:fmt}, {:fmt}
         (?P<python>
             \{
-            (?P<python_key>[a-zA-Z0-9_]*)
+            (?P<python_key>[^{}:]*)
             (?P<python_format>:[^}]+)?
             }
-        ) |
-
-        # C-style placeholders: %(key)s, %1$s, %s
-        (?P<c_style>
-            %
-            (?:
-                \((?P<c_key>[a-zA-Z0-9_]+)\) |
-                (?P<c_index>[1-9]\d*)\$
-            )?
-            (?P<c_format>[+\-\#0-9.]*[diouxXeEfFgGcrsa%])
-        ) |
-
-        # Shell-style placeholders: $key, ${key}, $0, ${1}
-        (?P<shell>
-            \$
-            (?:
-                \{(?P<shell_braced_key>[a-zA-Z0-9_]+)} |
-                (?P<shell_simple_key>[a-zA-Z0-9_]+)
-            )
         )
     """,
     re.VERBOSE,
@@ -40,7 +19,7 @@ PLACEHOLDER_REGEX = re.compile(
 
 
 # ruff: noqa C901
-def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
+def generate_formatted_stub(name: str, string: str, types: dict[str, str]) -> Tuple[str, bool]:
     """Generate a stub signature for a formatted string entry."""
     required_kwargs: dict[str, str] = {}
     used_indices = set()
@@ -50,10 +29,7 @@ def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
     for match in matches:
         groups = match.groupdict()
 
-        if groups["py_escape"] or groups["c_escape"] or groups["shell_escape"]:
-            continue
-
-        if groups["c_style"] and groups["c_format"] == "%":
+        if groups.get("py_escape"):
             continue
 
         is_named = False
@@ -62,56 +38,32 @@ def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
         is_sequential = False
         placeholder_type = "Any"
 
-        if groups["python"]:
+        if groups.get("python"):
             raw_key = groups["python_key"]
             fmt = groups.get("python_format")
             if fmt:
-                if any(c in fmt for c in "di"):
+                if any(ch in fmt for ch in "di"):
                     placeholder_type = "int"
-                elif any(c in fmt for c in "eEfgG%"):
+                elif any(ch in fmt for ch in "eEfgG%"):
                     placeholder_type = "float"
                 else:
                     placeholder_type = "str"
 
             if raw_key:
-                if raw_key.isdigit():
-                    index = int(raw_key)
+                root_match = re.match(r"^([^.\[]+)", raw_key)
+                root_key = root_match.group(1) if root_match else raw_key
+
+                if root_key.isdigit():
+                    index = int(root_key)
                 else:
-                    key = raw_key
+                    key = root_key
                     is_named = True
             else:
                 is_sequential = True
-
-        elif groups["c_style"]:
-            c_key = groups["c_key"]
-            c_index = groups["c_index"]
-            c_format = groups.get("c_format")
-            if c_format:
-                if any(c in c_format for c in "diouxX"):
-                    placeholder_type = "int"
-                elif any(c in c_format for c in "eEfFgG"):
-                    placeholder_type = "float"
-                elif any(c in c_format for c in "s"):
-                    placeholder_type = "str"
-
-            if c_index:
-                index = int(c_index)
-            elif c_key:
-                key = c_key
-                is_named = True
-            else:
-                is_sequential = True
-
-        elif groups["shell"]:
-            s_key = groups["shell_braced_key"] or groups["shell_simple_key"]
-            if s_key:
-                if s_key.isdigit():
-                    index = int(s_key)
-                else:
-                    key = s_key
-                    is_named = True
 
         if is_named and key is not None:
+            if key in types:
+                placeholder_type = types[key]
             if key not in required_kwargs or required_kwargs[key] == "Any":
                 required_kwargs[key] = placeholder_type
         elif index is not None:
@@ -139,7 +91,7 @@ def generate_formatted_stub(name: str, string: str) -> Tuple[str, bool]:
         parts.extend(kw_args)
 
     if max_pos_index == -1 and not required_kwargs:
-        if "{{" in string or "}}" in string or "%%" in string or "$$" in string:
+        if "{{" in string or "}}" in string:
             return f"def {name}(self) -> str: ...", True
         else:
             return f"{name}: str = {repr(string)}", False
