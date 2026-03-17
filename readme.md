@@ -5,16 +5,16 @@
   <br>
   <b>Modern, type-safe i18n / l10n library for Python.</b>
   <br>
-  The alternative to standart i18n libraries with dot-notation, ICU Message Format, and IDE autocompletion.
+  The alternative to standart i18n libraries with dot-notation, ICU Message Format, IDE autocompletion and powerful CLI.
 </div>
 
 ---
 
 ## Overview
 
-**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `locales['en']['messages']['error']`, just write `locales["en"].messages.error`.
+**doti18n** allows you to replace string-based dictionary lookups with intuitive object navigation. Instead of `i18n["en"]["messages"]["error"]`, just write `i18n["en"].messages.error`.
 
-It focuses on **Developer Experience (DX)** by providing a CLI tool to generate `.pyi` stubs. This enables **IDE autocompletion** and allows static type checkers (mypy, pyright) to catch missing keys at build time.
+It focuses on **Developer Experience (DX)** by providing a CLI tool to generate `.pyi` stubs. This enables **IDE autocompletion** and allows static type checkers (mypy, pyright) to catch missing keys, typo and type mismatching at build time.
 
 ### Key Features
 
@@ -28,7 +28,7 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
     *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
 *   **Fallback:** Automatically falls back to the default locale if a key is missing.
 *   **Macros:** Define reusable snippets for common patterns (e.g., reusable gender-select ICU snippets).
-*   **Powerful CLI:** Generate stubs, lint for missing keys, and run a web-based translation studio.
+*   **Powerful CLI:** Generate stubs, lint for missing keys and run a web-based translation studio.
 
 ## Installation
 
@@ -52,7 +52,7 @@ __macros__: # Define a section with macros
     gender: {gender, select, male {He} female {She} other {They}}
 
 greeting: "Hello {}!"
-farewell: "Goodbye $name!"
+farewell: "Goodbye {name}!"
 
 # Using macros
 user_action: "@gender uploaded a new photo."
@@ -87,25 +87,24 @@ en = i18n["en"]
 
 # 1. Standard formatting (Python-style)
 print(en.greeting("John"))              # Output: Hello John!
-
-# 2. Variable formatting (Shell-style)
 print(en.farewell(name="Alice"))        # Output: Goodbye Alice!
 
-# 3. Raw strings and graceful handling
-print(en.farewell)                      # Output: Goodbye $name! (Raw string)
+# 2. Raw strings and graceful handling
+print(en.farewell)                      # Output: Goodbye {name}! (Raw string)
 print(en.farewell())                    # Output: Goodbye ! (Missing var handled)
 
-# 4. Using strings with macros
+# 3. Using strings with macros
 print(en.user_action(gender="male"))    # Output: He uploaded a new photo.
 print(en.user_status(gender="female"))  # Output: She is currently online.
 
-# 5. List access
+# 4. List access
 print(en.items[0].name)                 # Output: Item 1
 
-# 6. Basic Pluralization
+# 5. Basic Pluralization
 print(en.notifications(1))              # Output: You have 1 new notification.
+print(en.notifications(5))              # Output: You have 5 new notifications.
 
-# 7. Advanced ICUMF Logic
+# 6. Advanced ICUMF Logic
 # "weapon" branch -> "one" sub-branch
 print(en.loot_msg(hero="Arthur", type="weapon", count=1))
 # Output: Arthur found a legendary sword in the chest.
@@ -143,7 +142,7 @@ python -m doti18n stub --clean
 > **Note:** Run this inside your virtual environment to ensure stubs are generated for the installed package.
 
 ### Lint
-Scan your translation files for missing keys, type mismatches, and structural issues across locales.
+Scan your translation files for missing keys, type mismatches and structural issues across locales.
 
 ```bash
 # Lint all locales against the default language (en)
@@ -155,7 +154,7 @@ doti18n lint locales/ -lang fr
 
 ### Studio
 A web-based translation editor that runs locally.
-It lets you browse, edit, and save translations in real time from the browser. 
+It lets you browse, edit and save translations in real time from the browser. 
 Multiple users can work simultaneously — edits are synced via WebSocket.
 
 Studio requires extra dependencies:
@@ -165,7 +164,7 @@ pip install doti18n[studio]
 
 First, create a user:
 ```bash
-doti18n studio add-user admin mypassword
+doti18n studio add-user admin password
 ```
 
 Then start the server:
