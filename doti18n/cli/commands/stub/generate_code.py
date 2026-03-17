@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from textwrap import indent
 from typing import Union
@@ -9,6 +10,8 @@ from .icumf_stub import generate_icumf_stub
 from .plural_stub import generate_plural_stub
 from datetime import datetime, UTC
 
+
+logger = logging.getLogger("doti18n.stub")
 LIBRARY_CODE = """# Generated via doti18n at {time}
 {extra_imports}
 from typing import Any, overload, Optional, Union, Literal, List, Callable, Dict, Tuple, Iterator
@@ -226,6 +229,10 @@ def extra_imports(types: dict) -> str:
 
     for path in types.values():
         if path in STANDARD_TYPES:
+            continue
+
+        if path.startswith("."):
+            logger.error(f"Relative imports are not allowed: {path}. Skipping.")
             continue
 
         path_parts = path.split(".")
