@@ -1,8 +1,6 @@
 import logging
 import sys
 
-from .auth import add_user
-from .state import init_state
 
 logger = logging.getLogger("doti18n.studio")
 
@@ -32,24 +30,35 @@ def add_common_arguments(parser):
 
 def handle_run(args):
     """Handle the 'studio run' command to invoke a web-client."""
+    try:
+        from .state import init_state
+    except ImportError:
+        logger.error("Install doti18n with the 'studio' extra to use this command: pip install doti18n[studio]")
+        sys.exit(1)
+
     if not args.path:
-        logger.critical("Path to locale's directory or file is required.")
+        logger.error("Path to locale's directory or file is required.")
         sys.exit(1)
 
     try:
         init_state(args.path, args.default_locale)
     except (FileNotFoundError, NotADirectoryError) as e:
-        logger.critical(str(e))
+        logger.error(str(e))
         sys.exit(1)
 
     from .server import run_server
-
     logger.info(f"Starting doti18n studio on http://{args.host}:{args.port}")
     run_server(args.host, args.port)
 
 
 def handle_add_user(args):
     """Handle the 'studio add-user' command."""
+    try:
+        from .auth import add_user
+    except ImportError:
+        logger.error("Install doti18n with the 'studio' extra to use this command: pip install doti18n[studio]")
+        sys.exit(1)
+
     add_user(args.username, args.password)
     logging.info(f"User '{args.username}' added successfully.")
 
