@@ -278,6 +278,8 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         code.append(generate_class(cls, types))
         LIBRARY_CODE += (
             f"\n    @overload"
+            f"\n    def get_locale(self, locale_code: Literal['{cls.name}'], default: Any = None) -> {cls.name.capitalize()}Locale: ..."
+            f"\n    @overload"
             f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
         )
 
