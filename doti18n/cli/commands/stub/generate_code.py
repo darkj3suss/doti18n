@@ -39,7 +39,8 @@ class MarkdownFormatter(BaseFormatter):
 
 
 class ICUMF:
-    def __init__(self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs): ...
+    def __init__(self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, 
+    cache_size: int = 1024, **kwargs): ...
     def parse(self, string: str) -> Any: ...
     def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable: ...
 
@@ -218,8 +219,23 @@ def generate_class(cls: Union[StubLocale, StubNamespace, StubList], types: dict)
 
 
 STANDARD_TYPES = {
-    "str", "int", "float", "bool", "list", "dict", "set", "tuple",
-    "Any", "Union", "Callable", "Optional", "Literal", "List", "Dict", "Tuple", "Iterator"
+    "str",
+    "int",
+    "float",
+    "bool",
+    "list",
+    "dict",
+    "set",
+    "tuple",
+    "Any",
+    "Union",
+    "Callable",
+    "Optional",
+    "Literal",
+    "List",
+    "Dict",
+    "Tuple",
+    "Iterator",
 }
 
 
@@ -260,6 +276,7 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         imports = ""
 
     for cls in stub_classes:
+
         def process_childs(stub_namespace: Union[StubNamespace, StubList]):
             nonlocal code
             if isinstance(stub_namespace, StubNamespace):
@@ -276,11 +293,13 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
             process_childs(child)
 
         code.append(generate_class(cls, types))
+        # class_name
+        cn = f"{cls.name.capitalize()}Locale"
         LIBRARY_CODE += (
             f"\n    @overload"
-            f"\n    def get_locale(self, locale_code: Literal['{cls.name}'], default: Any = None) -> {cls.name.capitalize()}Locale: ..."
+            f"\n    def get_locale(self, locale_code: Literal['{cls.name}'], default: Any = None) -> {cn}: ..."
             f"\n    @overload"
-            f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
+            f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cn}: ..."
         )
 
     LIBRARY_CODE += (

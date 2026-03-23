@@ -1,7 +1,6 @@
 import logging
 import sys
 
-
 logger = logging.getLogger("doti18n.studio")
 
 
@@ -31,6 +30,7 @@ def add_common_arguments(parser):
 def handle_run(args):
     """Handle the 'studio run' command to invoke a web-client."""
     try:
+        # noinspection PyUnusedImports
         from .state import init_state
     except ImportError:
         logger.error("Install doti18n with the 'studio' extra to use this command: pip install doti18n[studio]")
@@ -47,6 +47,7 @@ def handle_run(args):
         sys.exit(1)
 
     from .server import run_server
+
     logger.info(f"Starting doti18n studio on http://{args.host}:{args.port}")
     run_server(args.host, args.port)
 
@@ -54,6 +55,7 @@ def handle_run(args):
 def handle_add_user(args):
     """Handle the 'studio add-user' command."""
     try:
+        # noinspection PyUnusedImports
         from .auth import add_user
     except ImportError:
         logger.error("Install doti18n with the 'studio' extra to use this command: pip install doti18n[studio]")
