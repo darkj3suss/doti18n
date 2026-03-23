@@ -197,7 +197,7 @@ doti18n supports defining multiple locales in a single file.
         Any YAML file containing multiple documents (separated by `---`) is treated as a multilocale file.
 
 === "JSON"
-    Each object in the root list must contain a `locale` key (this key is removed from the final data). Missing keys will trigger an error (or a log in non-strict mode).
+    Each object in the root list must contain a `__locale__![img.png](img.png)` key (this key is removed from the final data). Missing keys will trigger an error (or a log in non-strict mode).
     
     `locales/locales.json`:
     ```json
