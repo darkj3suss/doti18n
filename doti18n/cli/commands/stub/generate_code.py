@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from textwrap import indent
 from typing import Union
@@ -9,9 +10,11 @@ from .icumf_stub import generate_icumf_stub
 from .plural_stub import generate_plural_stub
 from datetime import datetime, UTC
 
+
+logger = logging.getLogger("doti18n.stub")
 LIBRARY_CODE = """# Generated via doti18n at {time}
 {extra_imports}
-from typing import Any, overload, Optional, Union, Literal, List, Callable, Dict, Tuple
+from typing import Any, overload, Optional, Union, Literal, List, Callable, Dict, Tuple, Iterator
 from pathlib import Path
 
 
@@ -36,7 +39,8 @@ class MarkdownFormatter(BaseFormatter):
 
 
 class ICUMF:
-    def __init__(self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, cache_size: int = 1024, **kwargs): ...
+    def __init__(self, strict: bool = True, tag_formatter: type[BaseFormatter] = HTMLFormatter, 
+    cache_size: int = 1024, **kwargs): ...
     def parse(self, string: str) -> Any: ...
     def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable: ...
 
@@ -64,11 +68,6 @@ class StubNamespace:
     name: str
     childs: dict
     args: dict
-    list_childs: dict = None  # type: ignore
-
-    def __post_init__(self):
-        if self.list_childs is None:
-            self.list_childs = {}
 
 
 @dataclass
@@ -76,11 +75,12 @@ class StubLocale:
     name: str
     childs: dict
     args: dict
-    list_childs: dict = None  # type: ignore
 
-    def __post_init__(self):
-        if self.list_childs is None:
-            self.list_childs = {}
+
+@dataclass
+class StubList:
+    name: str
+    items: list
 
 
 def fill_stub_namespace(locale_data: dict, element: StubNamespace):
@@ -91,20 +91,17 @@ def fill_stub_namespace(locale_data: dict, element: StubNamespace):
             else:
                 element.childs[key] = fill_stub_namespace(value, StubNamespace(f"{element.name}_{key}", {}, {}))
         elif isinstance(value, list):
-            element.args[key] = []
-            element.list_childs[key] = []
+            items = []
             for n, v in enumerate(value):
                 if isinstance(v, dict):
                     if _is_plural_dict(v):
-                        element.args[key].append(v)
-                        element.list_childs[key].append(None)
+                        items.append(v)
                     else:
                         child = fill_stub_namespace(v, StubNamespace(f"{element.name}_{key}_{n}", {}, {}))
-                        element.args[key].append(None)
-                        element.list_childs[key].append(child)
+                        items.append(child)
                 else:
-                    element.args[key].append(v)
-                    element.list_childs[key].append(None)
+                    items.append(v)
+            element.childs[key] = StubList(f"{element.name}_{key}", items)
         else:
             element.args[key] = value
 
@@ -122,20 +119,17 @@ def generate_stub_classes(locale_data: dict) -> list[StubLocale]:
                 else:
                     locale.childs[key_] = fill_stub_namespace(value_, StubNamespace(f"{key}_{key_}", {}, {}))
             elif isinstance(value_, list):
-                locale.args[key_] = []
-                locale.list_childs[key_] = []
+                items = []
                 for n, v in enumerate(value_):
                     if isinstance(v, dict):
                         if _is_plural_dict(v):
-                            locale.args[key_].append(v)
-                            locale.list_childs[key_].append(None)
+                            items.append(v)
                         else:
                             child = fill_stub_namespace(v, StubNamespace(f"{key}_{key_}_{n}", {}, {}))
-                            locale.args[key_].append(None)
-                            locale.list_childs[key_].append(child)
+                            items.append(child)
                     else:
-                        locale.args[key_].append(v)
-                        locale.list_childs[key_].append(None)
+                        items.append(v)
+                locale.childs[key_] = StubList(f"{key}_{key_}", items)
             else:
                 locale.args[key_] = value_
 
@@ -149,12 +143,46 @@ def normalize_name(name: str) -> str:
 
 
 # ruff: noqa C901
-def generate_class(cls: Union[StubLocale, StubNamespace], types: dict) -> str:
+def generate_class(cls: Union[StubLocale, StubNamespace, StubList], types: dict) -> str:
     """Generate stub class code for a given StubLocale or StubNamespace."""
     lines = []
 
     if isinstance(cls, StubNamespace):
         lines.append(f"class {normalize_name(cls.name)}(LocaleTranslator):")
+    elif isinstance(cls, StubList):
+        lines.append(f"class {normalize_name(cls.name)}(list):")
+        item_types = []
+        for i, item in enumerate(cls.items):
+            if isinstance(item, dict) and _is_plural_dict(item):
+                t = "Callable"
+            elif isinstance(item, StubNamespace):
+                t = normalize_name(item.name)
+            elif isinstance(item, StubList):
+                t = normalize_name(item.name)
+            elif item is not None:
+                t = type(item).__name__
+            else:
+                t = "Any"
+            item_types.append(t)
+
+            if t in ["str", "int", "float", "bool"]:
+                lines.append(f"    _{i}: {t} = {repr(item)}")
+            else:
+                lines.append(f"    _{i}: {t} = ...")
+            lines.append(f"    @overload")
+            lines.append(f"    def __getitem__(self, index: Literal[{i}]) -> {t}: ...")
+
+        unique_types = sorted(list(set(item_types)))
+        if not unique_types:
+            union_type = "Any"
+        elif len(unique_types) == 1:
+            union_type = unique_types[0]
+        else:
+            union_type = f"Union[{', '.join(unique_types)}]"
+
+        lines.append(f"    def __iter__(self) -> Iterator[{union_type}]: ...")
+        lines.append(f"    def __getitem__(self, index: Union[int, slice]) -> {union_type}: ...")
+        return "\n".join(lines) + "\n\n"
     else:
         lines.append(f"class {cls.name.capitalize()}Locale(LocaleTranslator):")
 
@@ -181,36 +209,6 @@ def generate_class(cls: Union[StubLocale, StubNamespace], types: dict) -> str:
                 lines.append(f"    {key}: dict = {repr(value)}")
             continue
 
-        if isinstance(value, list):
-            types = []
-            for i, item in enumerate(value):
-                if isinstance(item, dict) and _is_plural_dict(item):
-                    stub_name = f"{key}_{i}"
-                    stub = generate_plural_stub(stub_name, item)
-                    lines.append(indent(stub.rstrip(), "    "))
-                    types.append(f"Callable")
-                elif key in cls.list_childs and i < len(cls.list_childs[key]) and cls.list_childs[key][i]:
-                    types.append(normalize_name(cls.list_childs[key][i].name))
-                elif item is not None:
-                    types.append(type(item).__name__)
-                else:
-                    types.append("Any")
-
-            unique_types = []
-            for t in types:
-                if t not in unique_types:
-                    unique_types.append(t)
-
-            if len(unique_types) == 1:
-                type_hint = f"List[{unique_types[0]}]"
-            elif len(unique_types) > 1:
-                type_hint = f"List[Union[{', '.join(unique_types)}]]"
-            else:
-                type_hint = "List[Any]"
-
-            lines.append(f"    {key}: {type_hint}")
-            continue
-
         lines.append(f"    {key}: {type(value).__name__} = {repr(value)}")
 
     for key, value in cls.childs.items():
@@ -221,8 +219,23 @@ def generate_class(cls: Union[StubLocale, StubNamespace], types: dict) -> str:
 
 
 STANDARD_TYPES = {
-    "str", "int", "float", "bool", "list", "dict", "set", "tuple",
-    "Any", "Union", "Callable", "Optional", "Literal", "List", "Dict", "Tuple"
+    "str",
+    "int",
+    "float",
+    "bool",
+    "list",
+    "dict",
+    "set",
+    "tuple",
+    "Any",
+    "Union",
+    "Callable",
+    "Optional",
+    "Literal",
+    "List",
+    "Dict",
+    "Tuple",
+    "Iterator",
 }
 
 
@@ -232,6 +245,10 @@ def extra_imports(types: dict) -> str:
 
     for path in types.values():
         if path in STANDARD_TYPES:
+            continue
+
+        if path.startswith("."):
+            logger.error(f"Relative imports are not allowed: {path}. Skipping.")
             continue
 
         path_parts = path.split(".")
@@ -259,14 +276,15 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         imports = ""
 
     for cls in stub_classes:
-        def process_childs(stub_namespace: StubNamespace):
-            nonlocal code
-            for value in stub_namespace.childs.values():
-                process_childs(value)
 
-            for key, v in stub_namespace.list_childs.items():
-                for item in v:
-                    if item:
+        def process_childs(stub_namespace: Union[StubNamespace, StubList]):
+            nonlocal code
+            if isinstance(stub_namespace, StubNamespace):
+                for value in stub_namespace.childs.values():
+                    process_childs(value)
+            elif isinstance(stub_namespace, StubList):
+                for item in stub_namespace.items:
+                    if isinstance(item, (StubNamespace, StubList)):
                         process_childs(item)
 
             code.append(generate_class(stub_namespace, types))
@@ -274,15 +292,14 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         for child in cls.childs.values():
             process_childs(child)
 
-        for v in cls.list_childs.values():
-            for item in v:
-                if item:
-                    process_childs(item)
-
         code.append(generate_class(cls, types))
+        # class_name
+        cn = f"{cls.name.capitalize()}Locale"
         LIBRARY_CODE += (
             f"\n    @overload"
-            f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cls.name.capitalize()}Locale: ..."
+            f"\n    def get_locale(self, locale_code: Literal['{cls.name}'], default: Any = None) -> {cn}: ..."
+            f"\n    @overload"
+            f"\n    def __getitem__(self, locale_code: Literal['{cls.name}']) -> {cn}: ..."
         )
 
     LIBRARY_CODE += (

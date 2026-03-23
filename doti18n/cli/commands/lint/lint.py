@@ -3,6 +3,7 @@ from typing import Optional
 
 from doti18n.icumf import ICUMF, html_pattern, icumf_pattern
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
+
 from ..stub.formatted_stub import PLACEHOLDER_REGEX
 
 logger = logging.getLogger("doti18n.lint")

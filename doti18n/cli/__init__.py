@@ -19,7 +19,6 @@ def setup_logging():
             "INFO": "bold_green",
             "WARNING": "bold_yellow",
             "ERROR": "bold_red",
-            "CRITICAL": "bold_red,bg_white",
         },
     )
 

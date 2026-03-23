@@ -286,17 +286,11 @@ print(i18n["en"].welcome)  # Output: Welcome to doti18n!
 
 ## Formatting Styles
 
-Call the key as a function `()` to apply formatting. doti18n supports Python, Shell, and C-style formatting natively.  
+Call the key as a function `()` to apply formatting. doti18n supports Python formatting natively.  
 For more information, see [Formatting](usage/formatting.md).
 
-| Style       | Syntax             | Example              | Python Call       |
-|:------------|:-------------------|:---------------------|:------------------|
-| **Python**  | `{var}`            | `"Hello, {name}!"`   | `key(name="Bob")` |
-| **Shell**   | `$var` or `${var}` | `"Hello, $name!"`    | `key(name="Bob")` |
-| **C-style** | `%s` or `%(var)s`  | `"Hello, %(name)s!"` | `key(name="Bob")` |
-
 !!! tip "Escaping"
-    Double the characters to escape them: `{{`, `}}`, `$$`, `%%`.
+    Double the characters to escape them: `{{`, `}}`.
 
 ---
 

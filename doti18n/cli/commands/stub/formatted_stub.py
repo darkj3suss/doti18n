@@ -82,4 +82,5 @@ def generate_formatted_stub(name: str, string: str, types: dict[str, str]) -> Tu
             return f"{name}: str = {repr(string)}", False
 
     sig_str = ", ".join(parts)
-    return f"def {name}({sig_str}) -> str: ...", True
+    message_docs = f'"""{repr(string)[1:-1]}"""'
+    return f"def {name}({sig_str}) -> str:\n        {message_docs}\n        ...", True
