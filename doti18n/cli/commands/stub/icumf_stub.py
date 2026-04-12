@@ -55,7 +55,7 @@ def generate_icumf_stub(name: str, string: str) -> Tuple[str, bool]:
     sorted_kwargs.append("formatter")
 
     for k in sorted_kwargs:
-        arg_type = required_kwargs[k]
+        arg_type = required_kwargs.get(k, "Any")
         if k == "count":
             arg_type = "int"
         if k == "formatter":
@@ -64,4 +64,4 @@ def generate_icumf_stub(name: str, string: str) -> Tuple[str, bool]:
 
     sig_str = ", ".join(parts)
     message_docs = f'"""{repr(string)[1:-1]}"""\n'
-    return f"def {name}({sig_str}) -> str:\n        {message_docs}\n        ...", True
+    return f"def {name}({sig_str}) -> str:\n        {message_docs}        ...", True

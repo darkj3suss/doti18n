@@ -23,12 +23,8 @@ class StudioState:
         self.locks: Dict[str, threading.Lock] = {}
         self.global_lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        # Server-side key lock tracking: {(locale, key): username}
         self.active_locks: Dict[tuple, str] = {}
         self._active_locks_lock = threading.Lock()
-
-        # Debounced save
         self._save_timer: Optional[threading.Timer] = None
         self._save_timer_lock = threading.Lock()
         self._dirty_locales: set = set()
@@ -121,7 +117,6 @@ class StudioState:
                     )
                     return
 
-            # Set the final value
             last_key = keys[-1]
             if isinstance(current, list):
                 try:
@@ -178,8 +173,6 @@ class StudioState:
         """Get the username that holds the lock, or None."""
         with self._active_locks_lock:
             return self.active_locks.get((locale, key))
-
-    # --- Debounced save ---
 
     def _schedule_save(self):
         """Schedule a debounced save. Resets the timer on each call."""
