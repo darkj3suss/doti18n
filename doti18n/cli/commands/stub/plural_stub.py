@@ -1,6 +1,6 @@
 from typing import Any
 
-from doti18n.wrapped.string_wrapper import PLACEHOLDER_REGEX
+from doti18n.wrapped.string import PLACEHOLDER_REGEX
 
 
 # ruff: noqa C901

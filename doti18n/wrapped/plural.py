@@ -3,26 +3,12 @@ from typing import Callable
 
 
 class PluralWrapper:
-    """
-    Wrap a plural handler function to make it callable.
-
-    And add more convenience methods.
-    """
+    """Wrap a plural handler function to make it callable."""
 
     __slots__ = ("func", "path", "strict", "_logger")
 
     def __init__(self, func: Callable, path: str, strict: bool = False):
-        """
-        Initialize an instance with the provided function, path, and strictness flag.
-
-        This constructor sets up the core attributes for an object, including the
-        function to be used (`func`), the path associated with this instance (`path`),
-        and whether the instance operates in strict mode (`strict`).
-
-        :param func: The callable function associated with this instance.
-        :param path: A string representing the path for this instance.
-        :param strict: A boolean flag indicating if strict mode is enabled. Defaults to False.
-        """
+        """Initialize an instance with the provided function, path, and strictness flag."""
         self.func = func
         self.path = path
         self.strict = strict

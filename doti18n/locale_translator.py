@@ -9,8 +9,8 @@ from .utils import (
     _is_plural_dict,
 )
 from .wrapped import (
-    LocaleList,
-    LocaleNamespace,
+    ListWrapper,
+    NamespaceWrapper,
     NoneWrapper,
     PluralWrapper,
     StringWrapper,
@@ -182,9 +182,9 @@ class LocaleTranslator:
                     strict=self._strict,
                 )
             else:
-                return LocaleNamespace(path, self)
+                return NamespaceWrapper(path, self)
         elif isinstance(value, list):
-            return LocaleList(value, path, self)
+            return ListWrapper(value, path, self)
         else:
             if callable(value):
                 value.bind(self)
