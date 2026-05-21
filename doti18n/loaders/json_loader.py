@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from ..errors import (
     EmptyFileError,
@@ -22,7 +22,7 @@ class JsonLoader(BaseLoader):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Load locale data from a JSON file."""
         filename = os.path.basename(filepath)
         try:
@@ -31,9 +31,6 @@ class JsonLoader(BaseLoader):
                 if not data:
                     self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
                     return {}
-
-                if isinstance(data, list):
-                    return data
 
                 locale_code = _get_locale_code(filename)
                 self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")

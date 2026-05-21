@@ -5,12 +5,10 @@ from typing import Any, Dict, List, Tuple, Union, Optional
 
 from ..errors import (
     InvalidLocaleDocumentError,
-    LocaleIdentifierMissingError,
     MissingFileExtensionError,
     UnsupportedFileExtensionError,
 )
 from ..icumf import ICUMF
-from ..utils import _deep_merge
 from .base_loader import BaseLoader
 
 # ruff: noqa F401
@@ -71,17 +69,23 @@ class Loader:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
         if loader := self.loaders.get(extension.lower()):
-            data: Union[dict[Any, Any], list[dict[Any, Any]]] = loader.load(filepath)
-            if isinstance(data, list):
-                locale_data = self._load_multiple_locales(filename, data)
-            else:
-                locale_data = data
+            data: Dict[str, Any] = loader.load(filepath)
+            for _, locale in data.items():
+                if isinstance(locale, list):
+                    for item in locale:
+                        self._validate(filepath, item)
+                        self._process_data(item)
+                elif isinstance(locale, dict):
+                    self._validate(filepath, locale)
+                    self._process_data(locale)
+                else:
+                    self._throw(
+                        f"Locale data in '{filename}' should be a dictionary or a list of dictionaries, "
+                        f"but got {type(locale).__name__}",
+                        InvalidLocaleDocumentError,
+                    )
 
-            for _, locale in locale_data.items():
-                self._validate(filepath, locale)
-                self._process_data(locale)
-
-            return locale_data
+            return data
 
         else:
             return self._throw(
@@ -89,55 +93,6 @@ class Loader:
                 f"doti18n supports: {self.get_supported_extensions()}",
                 UnsupportedFileExtensionError,
             )
-
-    def _load_multiple_locales(self, filename: str, data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-        """
-        Process and validate multiple locale configurations.
-
-        :param filename: The name of the file containing the locale data.
-        :type filename: str
-        :param data: A list of documents, where each document is expected to represent locale data.
-        :type data: list
-        :return: A list of tuples containing locale code and corresponding locale data, or None if no valid
-            locales are found.
-        :rtype: Optional[List[Tuple[str, dict]]]
-        :raises LocaleIdentifierMissingError: If a locale document is missing, the 'locale' key.
-        :raises InvalidLocaleDocumentError: If a document is not a dictionary or no valid locales are found.
-        """
-        initial_data: Dict[str, Dict[str, Any]] = {}
-
-        for index, document in enumerate(data):
-            if not isinstance(document, dict):
-                self._throw(
-                    f"Locale document #{index} in '{filename}' is not a dictionary.", InvalidLocaleDocumentError
-                )
-                continue
-
-            locale_code = document.get("__locale__", None)
-            if not isinstance(locale_code, str):
-                self._throw(
-                    f"Locale document #{index} in '{filename}' is missing the 'locale' key.",
-                    LocaleIdentifierMissingError,
-                )
-                continue
-
-            content = document.copy()
-            content.pop("__locale__")
-
-            if locale_code not in initial_data:
-                initial_data[locale_code] = {}
-
-            _deep_merge(content, initial_data[locale_code])
-
-        locales: List[Tuple[str, Dict[str, Any]]] = []
-        for locale_code, locale_data in initial_data.items():
-            self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
-            locales.append((locale_code, locale_data))
-
-        if not locales:
-            self._throw(f"Locale file '{filename}' does not contain any valid locale data.", InvalidLocaleDocumentError)
-
-        return dict(locales)
 
     def _validate(self, filepath: Union[str, Path], data: dict | list, path: Optional[List[str | int]] = None):
         path = path or []
@@ -174,6 +129,7 @@ class Loader:
                         processed_item = self._icumf.parse(item)
                         index = value.index(item)
                         value[index] = processed_item
+
             elif isinstance(value, str):
                 processed_value = self._icumf.parse(value)
                 data[key] = processed_value
@@ -183,7 +139,7 @@ class Loader:
     @staticmethod
     def _process_macros(data_: Dict[Any, Any]):
         """Process macros in the data."""
-        keys = ["__doti18n__", "__macros__"]
+        keys = ["__macros__"]
         for key in keys:
             if macros := data_.get(key, None):
                 break

@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, NoReturn, Optional, Union
+from typing import Any, Dict, List, NoReturn, Optional, Union
 
 from ..errors import EmptyFileError, ParseError
 from ..utils import _get_locale_code
@@ -31,7 +31,7 @@ class TomlLoader(BaseLoader):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Load and validate localization data from a TOML file."""
         if not tomllib:
             raise ImportError("tomllib is not available. TOML support requires Python 3.11+.")
@@ -42,16 +42,6 @@ class TomlLoader(BaseLoader):
                 data = tomllib.load(f)
                 if not data:
                     return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
-
-                for root_key in ("locales", "translations"):
-                    if not isinstance(data.get(root_key), list):
-                        continue
-
-                    documents = data[root_key]
-                    if not isinstance(documents, list):
-                        continue
-
-                    return documents
 
                 locale_code = _get_locale_code(filename)
                 self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")

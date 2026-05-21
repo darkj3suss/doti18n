@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, SupportsIndex, Tuple, Union
 
 from babel import Locale
 
@@ -27,8 +27,8 @@ class LocaleTranslator:
     def __init__(
         self,
         locale_code: str,
-        current_locale_data: Optional[Dict[str, Any]],
-        default_locale_data: Optional[Dict[str, Any]],
+        current_locale_data: Optional[Union[List[Any], Dict[str, Any]]],
+        default_locale_data: Optional[Union[List[Any], Dict[str, Any]]],
         default_locale_code: str,
         strict: bool = False,
     ):
@@ -47,8 +47,8 @@ class LocaleTranslator:
         """
         self.locale_code = locale_code
         self._logger = logging.getLogger(f"{self.__class__.__name__}['{locale_code}']")
-        self._current_locale_data = current_locale_data if isinstance(current_locale_data, dict) else {}
-        self._default_locale_data = default_locale_data if isinstance(default_locale_data, dict) else {}
+        self._current_locale_data = current_locale_data if isinstance(current_locale_data, (dict, list)) else {}
+        self._default_locale_data = default_locale_data if isinstance(default_locale_data, (dict, list)) else {}
         self._default_locale_code = default_locale_code
         self._strict = strict
 
@@ -114,7 +114,8 @@ class LocaleTranslator:
         # This is just in case
         try:
             return Locale(locale_code.replace("-", "_")).plural_form(abs(count))
-        except Exception:
+        except Exception as e:
+            self._logger.warning(f"Failed to determine plural form for locale '{locale_code}': {e}")
             return "other"
 
     def _get_plural_template(
@@ -187,6 +188,7 @@ class LocaleTranslator:
             return ListWrapper(value, path, self)
         else:
             if callable(value):
+                # noinspection PyUnresolvedReferences
                 value.bind(self)
 
             return value
@@ -274,6 +276,36 @@ class LocaleTranslator:
     def get(self, name: str) -> Any:
         """Symbolic alias for __getattr__."""
         return self._resolve_value_by_path([name])
+
+    def __getitem__(self, index: SupportsIndex, /) -> Any:
+        """Handle index access for the top level (e.g., `data['en.yml'][0]`)."""
+        if not any((isinstance(self._default_locale_data, list), isinstance(self._current_locale_data, list))):
+            raise TypeError("Index access not avaible for non-list root.")
+
+        index = index.__index__()
+        if len(self._current_locale_data) < index and len(self._default_locale_data) < index:
+            full_key_path = f"[{index}]"
+            if self._strict:
+                raise IndexError(
+                    f"Index out of bounds for path '{full_key_path}' "
+                    f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}')."
+                )
+            else:
+                self._logger.warning(
+                    f"Index '{index}' out of bounds for path '{full_key_path}' "
+                    f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}'). "
+                    "None will be returned."
+                )
+                return NoneWrapper(self.locale_code, full_key_path)
+
+        data: Union[dict, list] = (
+            self._current_locale_data if len(self._current_locale_data) > index else self._default_locale_data
+        )
+        return (
+            self._handle_resolved_value(data[index], [index], self.locale_code)
+            if len(self._current_locale_data) > index
+            else self._default_locale_code
+        )
 
     def __getattr__(self, name: str) -> Any:
         """

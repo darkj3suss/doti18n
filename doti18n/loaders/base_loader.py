@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 
 class BaseLoader(ABC):
@@ -10,7 +10,7 @@ class BaseLoader(ABC):
     file_extension: Union[tuple, str]
 
     @abstractmethod
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Load and validate locale data from a file."""
         raise NotImplementedError
 

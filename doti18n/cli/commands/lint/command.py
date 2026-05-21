@@ -5,7 +5,7 @@ from doti18n import LocaleData
 from doti18n.icumf import ICUMF
 from doti18n.loaders import Loader
 
-from .lint import lint_dict
+from .lint import lint
 
 logger = logging.getLogger("doti18n.lint")
 
@@ -51,7 +51,7 @@ def handle(args):
             continue
 
         logger.info(f"Linting locale '{locale_code}'...")
-        problems += lint_dict(locale_code, locale_data, source, icumf=icumf)
+        problems += lint(locale_code, locale_data, source, icumf=icumf)
         linted += 1
 
     if problems == 0:

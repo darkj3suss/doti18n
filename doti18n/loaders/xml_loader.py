@@ -63,7 +63,7 @@ class XmlLoader(BaseLoader):
         self._explicit_lists: Dict[str, Dict[str, str]] = {}
 
     # ruff: noqa: C901
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Load and processes localization data from an XML file."""
         filepath = Path(filepath)
         filename = filepath.name
@@ -71,35 +71,10 @@ class XmlLoader(BaseLoader):
         try:
             tree = Et.parse(filepath)
             root = tree.getroot()
-            multiple = root.tag in ("locales", "localizations", "translations")
-            locale_code = "" if multiple else _get_locale_code(filename)
+            locale_code = _get_locale_code(filename)
             data = self._etree_to_dict(root, locale_code)
             if not data:
                 return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-
-            if multiple:
-                if not isinstance(data, dict):
-                    return self._throw(
-                        f"File '{filename}': multiple locales expected, but got {type(data).__name__}",
-                        InvalidLocaleDocumentError,
-                    )
-
-                processed = []
-                for loc_code, translations in data.items():
-                    if loc_code.startswith("comment_"):
-                        continue
-
-                    if not isinstance(translations, dict):
-                        return self._throw(
-                            f"File '{filename}': locale '{loc_code}': data must be a dict, "
-                            f"got {type(translations).__name__}",
-                            InvalidLocaleDocumentError,
-                        )
-
-                    self._root_tags[loc_code] = root.tag
-                    processed.append({"locale": loc_code, **translations})
-
-                return processed
 
             if not isinstance(data, dict):
                 return self._throw(
@@ -127,17 +102,10 @@ class XmlLoader(BaseLoader):
             parser = XMLParser(target=Parser())
             tree = Et.parse(filepath, parser=parser)
             root = tree.getroot()
-            multiple = root.tag in ("locales", "localizations", "translations")
-            locale_code = "" if multiple else _get_locale_code(filename)
+            locale_code = _get_locale_code(filename)
             data = self._etree_to_dict(root, locale_code)
             if not data:
                 return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-
-            if multiple:
-                self._throw(
-                    "File '{filename}' contains multiple locales, which is not supported to load with comments.",
-                    NotImplementedError,
-                )
 
             if not isinstance(data, dict):
                 return self._throw(

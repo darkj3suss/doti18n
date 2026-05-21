@@ -112,12 +112,16 @@ class StubList(StubBase):
 class StubNamespace(StubBase):
     """Represent a namespace in the locale data."""
 
-    def __init__(self, name: str, data: dict):
+    def __init__(self, name: str, data: dict | list):
         """Initialize a StubNamespace."""
         super().__init__(name)
         self.args: dict[str, Any] = {}
         self.childs: dict[str, StubBase] = {}
-        self._parse_data(data)
+        if isinstance(data, list):
+            for item in data:
+                self._parse_data(item)
+        else:
+            self._parse_data(data)
 
     def _parse_data(self, data: dict):
         for key, value in data.items():

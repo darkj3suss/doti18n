@@ -20,7 +20,7 @@ def _is_plural_dict(data: Any) -> bool:
     return any(key in data and isinstance(data[key], str) for key in plural_keys)
 
 
-def _get_value_by_path_single(path: List[Union[str, int]], data: Optional[Dict[str, Any]]) -> Any:
+def _get_value_by_path_single(path: List[Union[str, int]], data: Optional[Union[List[Any], Dict[str, Any]]]) -> Any:
     """
     Retrieve a value by path from a single dictionary.
 
