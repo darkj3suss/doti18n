@@ -88,11 +88,6 @@ class StubList(StubBase):
                 t = "Any"
 
             item_types.add(t)
-
-            if t in ("str", "int", "float", "bool"):
-                lines.append(f"    _{i}: {t} = {repr(item)}")
-            else:
-                lines.append(f"    _{i}: {t} = ...")
             lines.append("    @overload")
             lines.append(f"    def __getitem__(self, index: Literal[{i}]) -> {t}: ...")
 
@@ -103,8 +98,9 @@ class StubList(StubBase):
             else f"Union[{', '.join(unique_types)}]" if unique_types else "Any"
         )
 
+        lines.append("    @overload")
+        lines.append(f"    def __getitem__(self, index: Union[SupportsIndex, slice]) -> List[{union_type}]: ...")
         lines.append(f"    def __iter__(self) -> Iterator[{union_type}]: ...")
-        lines.append(f"    def __getitem__(self, index: Union[SupportsIndex, slice]) -> {union_type}: ...")
 
         return "\n".join(lines) + "\n"
 
@@ -112,16 +108,12 @@ class StubList(StubBase):
 class StubNamespace(StubBase):
     """Represent a namespace in the locale data."""
 
-    def __init__(self, name: str, data: dict | list):
+    def __init__(self, name: str, data: dict):
         """Initialize a StubNamespace."""
         super().__init__(name)
         self.args: dict[str, Any] = {}
         self.childs: dict[str, StubBase] = {}
-        if isinstance(data, list):
-            for item in data:
-                self._parse_data(item)
-        else:
-            self._parse_data(data)
+        self._parse_data(data)
 
     def _parse_data(self, data: dict):
         for key, value in data.items():
@@ -186,13 +178,26 @@ class StubNamespace(StubBase):
         return "\n".join(lines) + "\n"
 
 
-class StubLocale(StubNamespace):
+class StubLocale:
     """Represent a locale in the locale data."""
 
-    @property
-    def class_name(self) -> str:
-        """Generate a class name for the locale stub based on its name."""
-        return f"{self.name.capitalize()}Locale"
+    def __init__(self, name: str, data: dict | list):
+        """Initialize a StubLocale."""
+        self._super: StubNamespace | StubList
+        if isinstance(data, dict):
+            self._super = StubNamespace(name, data)
+        elif isinstance(data, list):
+            self._super = StubList(name, data)
+        else:
+            raise ValueError(f"Locale data must be a dict or list, got {type(data).__name__} for locale '{name}'.")
+
+    def __getitem__(self, item):
+        """Delegate attribute access to the underlying StubNamespace or StubList."""
+        return getattr(self._super, item)
+
+    def __getattr__(self, item):
+        """Delegate attribute access to the underlying StubNamespace or StubList."""
+        return getattr(self._super, item)
 
     def generate_overloads(self) -> str:
         """Generate overloads for the get_locale and __getitem__ methods for this locale."""

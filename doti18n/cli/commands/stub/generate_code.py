@@ -121,10 +121,13 @@ def generate_code(data: dict, default_locale: str = "en") -> str:
         stub_code_blocks.extend(locale.render_tree(types))
         locale_overloads.append(locale.generate_overloads())
 
-    locale_overloads.append(
-        f"\n    @overload"
-        f"\n    def __getitem__(self, locale_code: str) -> {default_locale.capitalize()}Locale: ...\n"
-    )
+    cn = None
+    for stub_locale in locales:
+        if stub_locale.name == default_locale:
+            cn = stub_locale.class_name
+            break
+
+    locale_overloads.append(f"\n    @overload" f"\n    def __getitem__(self, locale_code: str) -> {cn}: ...\n")
     time_str = datetime.now(UTC).strftime("%Y.%m.%d %H:%M:%S UTC")
 
     return LIBRARY_CODE_TEMPLATE.format(
