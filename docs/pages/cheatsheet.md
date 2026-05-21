@@ -184,54 +184,6 @@ print(i18n["en"].greeting)   # Output: Hello World!
     other = "You have {count} new notifications."
     ```
 
----
-
-## Multilocale
-
-For more information, see [Supported Formats](usage/supported_formats.md#multilocale-files).
-
-=== "YAML"
-    `locales/locales.yaml`:
-    ```yaml
-    __locale__: "en"
-    hello: "Hello!"
-    ---
-    __locale__: "fr"
-    hello: "Bonjour!"
-    ```
-
-=== "JSON"
-    `locales/locales.json`:
-    ```json
-    [
-      {"__locale__": "en", "hello": "Hello!"},
-      {"__locale__": "fr", "hello": "Bonjour!"}
-    ]
-    ```
-
-=== "XML"
-    `locales/locales.xml`:
-    ```xml
-    <locales>
-      <en><hello>Hello!</hello></en>
-      <fr><hello>Bonjour!</hello></fr>
-    </locales>
-    ```
-
-=== "TOML"
-    `locales/locales.toml`:
-    ```toml
-    [[locales]]
-    __locale__ = "en"
-    hello = "Hello!"
-
-    [[locales]]
-    __locale__ = "fr"
-    hello = "Bonjour!"
-    ```
-
----
-
 ## Macros
 
 Macros are resolved **once at load-time**. Use the `__macros__` or `__doti18n__` key and the `@` prefix.  
