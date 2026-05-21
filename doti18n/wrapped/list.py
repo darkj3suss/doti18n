@@ -33,15 +33,15 @@ class ListWrapper(list):
     def __getitem__(self, index: Union[SupportsIndex, slice], /) -> Any:
         """Construct a path and delegate resolution to the LocaleTranslator."""
         if isinstance(index, slice):
-            result = []
-            start, stop, step = index.indices(len(self))
-            for idx in range(start, stop, step):
-                result.append(self._translator._resolve_value_by_path(self._path + [idx]))
+            start, stop, step = index.indices(len(self._data))
+            return [self._translator._resolve_value_by_path(self._path + [idx]) for idx in range(start, stop, step)]
 
-            return result
-
-        path = self._path + [index.__index__()]
-        return self._translator._resolve_value_by_path(path)
+        try:
+            idx = index.__index__()
+        except AttributeError:
+            raise TypeError(f"index must be SupportsIndex or slice, not {type(index).__name__}")
+        else:
+            return self._translator._resolve_value_by_path(self._path + [idx])
 
     def __iter__(self):
         """Iterate over the elements of the list."""
