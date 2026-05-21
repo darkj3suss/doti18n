@@ -27,8 +27,8 @@ class LocaleTranslator:
     def __init__(
         self,
         locale_code: str,
-        current_locale_data: Optional[Union[List[Any], Dict[str, Any]]],
-        default_locale_data: Optional[Union[List[Any], Dict[str, Any]]],
+        current_data: Optional[Union[List[Any], Dict[str, Any]]],
+        default_data: Optional[Union[List[Any], Dict[str, Any]]],
         default_locale_code: str,
         strict: bool = False,
     ):
@@ -36,10 +36,10 @@ class LocaleTranslator:
         Initialize a LocaleTranslator.
 
         :param locale_code: The code of the locale this translator handles (e.g., 'en.yml', 'fr').
-        :param current_locale_data: The raw localization data (as a dictionary) for the current locale.
+        :param current_data: The raw localization data (as a dictionary) for the current locale.
                                     Can be None if the locale file was not found or invalid.
-        :type current_locale_data: Optional[Dict[str, Any]]
-        :param default_locale_data: The raw localization data (as a dictionary) for the default locale.
+        :type current_data: Optional[Dict[str, Any]]
+        :param default_data: The raw localization data (as a dictionary) for the default locale.
                                     Can be None if the default locale file was not found or invalid.
         :param default_locale_code: The code of the default locale.
         :param strict: If True, accessing a non-existent key will raise AttributeError.
@@ -47,8 +47,8 @@ class LocaleTranslator:
         """
         self.locale_code = locale_code
         self._logger = logging.getLogger(f"{self.__class__.__name__}['{locale_code}']")
-        self._current_locale_data = current_locale_data if isinstance(current_locale_data, (dict, list)) else {}
-        self._default_locale_data = default_locale_data if isinstance(default_locale_data, (dict, list)) else {}
+        self._current_data: dict | list = current_data if isinstance(current_data, (dict, list)) else {}
+        self._default_data: dict | list = default_data if isinstance(default_data, (dict, list)) else {}
         self._default_locale_code = default_locale_code
         self._strict = strict
 
@@ -80,11 +80,11 @@ class LocaleTranslator:
         :return: A tuple containing the value (Any) and the locale code (Optional[str])
                  where the value was found. Returns (None, None) if not found.
         """
-        value_from_current = _get_value_by_path_single(path, self._current_locale_data)
+        value_from_current = _get_value_by_path_single(path, self._current_data)
         if value_from_current is not _NOT_FOUND:
             return value_from_current, self.locale_code
 
-        value_from_default = _get_value_by_path_single(path, self._default_locale_data)
+        value_from_default = _get_value_by_path_single(path, self._default_data)
         if value_from_default is not _NOT_FOUND:
             self._logger.warning(
                 f"Fallback for key '{'.'.join(list(map(str, path)))}' "
@@ -146,7 +146,7 @@ class LocaleTranslator:
             template = current_plural_dict.get("other")
 
         if template is None:
-            default_plural_dict = _get_value_by_path_single(path, self._default_locale_data)
+            default_plural_dict = _get_value_by_path_single(path, self._default_data)
             if (
                 default_plural_dict is not None
                 and isinstance(default_plural_dict, dict)
@@ -277,14 +277,30 @@ class LocaleTranslator:
         """Symbolic alias for __getattr__."""
         return self._resolve_value_by_path([name])
 
-    def __getitem__(self, index: SupportsIndex, /) -> Any:
+    def __getitem__(self, index: SupportsIndex | slice, /) -> Any:
         """Handle index access for the top level (e.g., `data['en.yml'][0]`)."""
-        if not any((isinstance(self._default_locale_data, list), isinstance(self._current_locale_data, list))):
-            raise TypeError("Index access not avaible for non-list root.")
+        current_type = isinstance(self._current_data, list)
+        default_type = isinstance(self._default_data, list)
 
-        index = index.__index__()
-        if len(self._current_locale_data) < index and len(self._default_locale_data) < index:
-            full_key_path = f"[{index}]"
+        if not (current_type or default_type):
+            raise TypeError("Index access not available for non-list root.")
+
+        def _get_single(idx: int) -> Any:
+            if current_type:
+                try:
+                    value = self._current_data[idx]
+                    return self._handle_resolved_value(value, [idx], self.locale_code)
+                except IndexError:
+                    pass
+
+            if default_type:
+                try:
+                    value = self._default_data[idx]
+                    return self._handle_resolved_value(value, [idx], self._default_locale_code)
+                except IndexError:
+                    pass
+
+            full_key_path = f"[{idx}]"
             if self._strict:
                 raise IndexError(
                     f"Index out of bounds for path '{full_key_path}' "
@@ -292,20 +308,25 @@ class LocaleTranslator:
                 )
             else:
                 self._logger.warning(
-                    f"Index '{index}' out of bounds for path '{full_key_path}' "
+                    f"Index '{idx}' out of bounds for path '{full_key_path}' "
                     f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}'). "
                     "None will be returned."
                 )
                 return NoneWrapper(self.locale_code, full_key_path)
 
-        data: Union[dict, list] = (
-            self._current_locale_data if len(self._current_locale_data) > index else self._default_locale_data
-        )
-        return (
-            self._handle_resolved_value(data[index], [index], self.locale_code)
-            if len(self._current_locale_data) > index
-            else self._default_locale_code
-        )
+        if isinstance(index, slice):
+            lcurrent = len(self._current_data) if current_type else 0
+            ldefault = len(self._default_data) if default_type else 0
+
+            start, stop, step = index.indices(max(lcurrent, ldefault))
+            return [_get_single(i) for i in range(start, stop, step)]
+
+        try:
+            idx = index.__index__()
+        except AttributeError:
+            raise TypeError(f"index must be SupportsIndex or slice, not {type(index).__name__}")
+
+        return _get_single(idx)
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -325,7 +346,7 @@ class LocaleTranslator:
 
     def __iter__(self):
         """Return an iterator for the current locale data."""
-        return iter(self._current_locale_data)
+        return iter(self._current_data)
 
     def __call__(self, *args, **kwargs) -> Any:
         """
