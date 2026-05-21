@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from doti18n.icumf import ICUMF, html_pattern, icumf_pattern
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
@@ -9,7 +8,7 @@ logger = logging.getLogger("doti18n.lint")
 PROBLEMS = 0
 
 
-def _lint(locale_code: str, locale_data: dict, source_data: dict, path: str = "", icumf: Optional[ICUMF] = None):
+def _lint(locale_code: str, locale_data: dict, source_data: dict, path: str = "", icumf: ICUMF | None = None):
     global PROBLEMS
     if isinstance(locale_data, dict) and isinstance(source_data, dict):
         lint(locale_code, locale_data, source_data, path, icumf)
@@ -134,7 +133,7 @@ def _lint_formatted(locale_code: str, locale_data: str, source_data: str, path: 
         PROBLEMS += 1
 
 
-def lint(locale_code: str, locale_data, source_data, path: str = "", icumf: Optional[ICUMF] = None):
+def lint(locale_code: str, locale_data, source_data, path: str = "", icumf: ICUMF | None = None):
     """Recursively lint a locale structure against the source structure."""
     global PROBLEMS
 
@@ -163,7 +162,7 @@ def lint(locale_code: str, locale_data, source_data, path: str = "", icumf: Opti
     return PROBLEMS
 
 
-def _lint_list(locale_code: str, locale_list: list, source_list: list, path: str, icumf: Optional[ICUMF] = None):
+def _lint_list(locale_code: str, locale_list: list, source_list: list, path: str, icumf: ICUMF | None = None):
     global PROBLEMS
     if len(locale_list) != len(source_list):
         logger.error(

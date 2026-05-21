@@ -4,17 +4,18 @@ import json
 import os
 import secrets
 import time
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any
 
 from microdot.microdot import redirect
 
 SESSION_TTL = int(os.environ.get("DOTI18N_SESSION_TTL", 3600))
 MAX_FAILED_ATTEMPTS = int(os.environ.get("DOTI18N_MAX_ATTEMPTS", 24 * 60 * 60))
 BAN_TIME = int(os.environ.get("DOTI18N_BAN_TIME", 24 * 60 * 60))
-SESSIONS: Dict[str, Dict[str, Any]] = {}
-_auth_file: Optional[Path] = None
+SESSIONS: dict[str, dict[str, Any]] = {}
+_auth_file: Path | None = None
 
 
 def _get_auth_file() -> Path:
@@ -26,13 +27,13 @@ def _get_auth_file() -> Path:
     return _auth_file
 
 
-def set_auth_file(path: Union[str, Path]):
+def set_auth_file(path: str | Path):
     """Override the auth file path programmatically."""
     global _auth_file
     _auth_file = Path(path)
 
 
-def hash_password(password: str, salt: Optional[str] = None) -> str:
+def hash_password(password: str, salt: str | None = None) -> str:
     """Hash a password with an optional salt. If no salt is provided, a new one is generated."""
     if salt is None:
         salt = secrets.token_hex(16)
@@ -164,7 +165,7 @@ def create_session(username: str, ip_address: str) -> str:
     return token
 
 
-def get_session(token: str, ip_address: Optional[str] = None) -> Optional[str]:
+def get_session(token: str, ip_address: str | None = None) -> str | None:
     """Validate a session token and return the associated username if valid. Optionally checks IP address."""
     session = SESSIONS.get(token)
     if not session:

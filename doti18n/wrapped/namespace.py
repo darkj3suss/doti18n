@@ -1,9 +1,4 @@
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    List,
-    Union,
-)
+from typing import TYPE_CHECKING, Any
 
 from ..utils import _NOT_FOUND
 
@@ -21,7 +16,7 @@ class NamespaceWrapper:
 
     __slots__ = ("_path", "_translator")
 
-    def __init__(self, path: List[Union[str, int]], translator: "doti18n.LocaleTranslator"):
+    def __init__(self, path: list[str | int], translator: "doti18n.LocaleTranslator"):
         """Initialize a LocaleNamespace."""
         self._path = path
         self._translator = translator

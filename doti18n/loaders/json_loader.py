@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, NoReturn
 
 from ..errors import (
     EmptyFileError,
@@ -22,7 +22,7 @@ class JsonLoader(BaseLoader):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
-    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def load(self, filepath: str | Path) -> dict[str, Any]:
         """Load locale data from a JSON file."""
         filename = os.path.basename(filepath)
         try:
@@ -42,21 +42,21 @@ class JsonLoader(BaseLoader):
         except Exception as e:
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-        return None
+        return {}
 
-    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load locale data from a JSON file."""
         return self.load(filepath)
 
     @staticmethod
-    def save(filepath: Union[str, Path], data: Dict[str, Dict]):
+    def save(filepath: str | Path, data: dict[str, dict]):
         """Save localization data to a JSON file."""
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
-    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR):
+    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
             raise exc_type(msg)
         else:
             self._logger.log(lvl, msg)
-            return None
+            return {}

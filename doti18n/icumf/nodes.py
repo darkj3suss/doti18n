@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 
 
 @dataclass(slots=True, eq=False)
@@ -25,8 +24,8 @@ class FormatNode(Node):
     """Node for variable formatting. Also for hash(#) inside plural messages."""
 
     name: str
-    type: Optional[str] = None  # 'date', 'number', 'time', etc.
-    style: Optional[str] = None  # 'short', '::.00', 'percent', etc.
+    type: str | None = None  # 'date', 'number', 'time', etc.
+    style: str | None = None  # 'short', '::.00', 'percent', etc.
     is_hash: bool = False  # True, if this node represents a hash (#) in plural messages.
 
     def __repr__(self):
@@ -45,7 +44,7 @@ class MessageNode(Node):
 
     name: str
     type: str  # 'plural', 'selectordinal', 'select'
-    options: Dict[str, List[Node]] = field(default_factory=dict)
+    options: dict[str, list[Node]] = field(default_factory=dict)
     offset: int = 0
 
     def __repr__(self):
@@ -58,7 +57,7 @@ class TagNode(Node):
     """Node for XML/HTML-like tags within the message."""
 
     name: str
-    children: List[Node] = field(default_factory=list)
+    children: list[Node] = field(default_factory=list)
 
     def __repr__(self):
         """Return a string representation of the TagNode."""

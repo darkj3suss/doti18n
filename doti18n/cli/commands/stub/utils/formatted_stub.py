@@ -1,4 +1,5 @@
-from typing import Any, Iterable, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 from doti18n.wrapped.string import PLACEHOLDER_REGEX
 
@@ -79,7 +80,7 @@ def _build_plural_doc_block(plural_items: dict[str, str]) -> str:
     return f'    """\n{lines}\n    """'
 
 
-def generate_formatted_stub(name: str, string: str, types: dict[str, str]) -> Tuple[str, bool]:
+def generate_formatted_stub(name: str, string: str, types: dict[str, str]) -> tuple[str, bool]:
     """Generate a stub signature for a formatted string entry."""
     required_kwargs, used_indices = _collect_placeholders([string], types)
     if not used_indices and not required_kwargs:

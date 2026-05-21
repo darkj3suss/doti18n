@@ -22,9 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import logging
-from typing import List, Optional, Union, TypedDict
+from typing import TypedDict
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
-
 
 # --- Constants --- #
 CHAR_OPEN = "{"
@@ -42,6 +41,8 @@ TAG_CLOSING = CHAR_TAG_CLOSE + CHAR_TAG_END
 TAG_END = CHAR_TAG_OPEN + CHAR_TAG_CLOSE
 CLOSE_TAG: dict = {}
 SEP_OR_CLOSE = "{} or {}".format(CHAR_SEP, CHAR_CLOSE)
+
+
 # --- Constants --- #
 
 
@@ -72,14 +73,14 @@ class ExpectedCharError(ParserError):
 class Parser:
     def __init__(
         self,
-        subnumeric_types: Optional[List[str]] = None,
-        submessage_types: Optional[List[str]] = None,
+        subnumeric_types: list[str] | None = None,
+        submessage_types: list[str] | None = None,
         depth_limit: int = 50,
         allow_tags: bool = True,
         strict_tags: bool = True,
-        tag_prefix: Optional[str] = None,
+        tag_prefix: str | None = None,
         allow_format_spaces: bool = True,
-        require_other: bool = True,
+        require_other: bool | list[str] = True,
     ):
         """
         Initialize the parser with configuration options.
@@ -103,7 +104,7 @@ class Parser:
         self.require_other = require_other
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def parse(self, message: str) -> List[Node]:
+    def parse(self, message: str) -> list[Node]:
         """Parse the given ICUMF message string into an AST."""
         if not isinstance(message, str):
             raise TypeError("Input must be a string")
@@ -121,8 +122,8 @@ class Parser:
 
         return result
 
-    def _parse_block(self, context: ParserContext, parent_node: Optional[Node] = None) -> List[Node]:
-        nodes: List[Node] = []
+    def _parse_block(self, context: ParserContext, parent_node: Node | None = None) -> list[Node]:
+        nodes: list[Node] = []
         msg = context["msg"]
         length = context["len"]
 
@@ -160,7 +161,7 @@ class Parser:
 
         return nodes
 
-    def _parse_text(self, context: ParserContext, parent_node: Optional[Node]) -> str:
+    def _parse_text(self, context: ParserContext, parent_node: Node | None) -> str:
         msg = context["msg"]
         length = context["len"]
         text = ""
@@ -200,7 +201,7 @@ class Parser:
 
         return text
 
-    def _parse_argument(self, context: ParserContext) -> Union[FormatNode, MessageNode]:
+    def _parse_argument(self, context: ParserContext) -> FormatNode | MessageNode:
         msg = context["msg"]
         context["i"] += 1
         self._skip_space(context)

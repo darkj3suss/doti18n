@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 import re
+from collections.abc import Callable
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional
 
 from .formatters import *
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
@@ -17,17 +20,17 @@ class CompiledMessage:
     def __init__(
         self,
         engine: "ICUMF",
-        nodes: List[Node],
+        nodes: list[Node],
         raw: str = "",
-        formatter: Optional[Callable] = None,
+        formatter: Callable | None = None,
     ):
         """Initialize the CompiledMessage with the ICUMF engine, parsed nodes, raw string, and optional formatter."""
         self.engine = engine
         self.raw = raw
         self.formatter = formatter
         self.is_cached = engine.cache_size > 0
-        self.nodes: Tuple[Node, ...] | List[Node] = tuple(nodes) if self.is_cached else nodes
-        self.t: Optional["LocaleTranslator"] = None
+        self.nodes: tuple[Node, ...] | list[Node] = tuple(nodes) if self.is_cached else nodes
+        self.t: Optional[LocaleTranslator] = None
 
     def __call__(self, **kwargs) -> str:
         """Render the compiled message with the provided keyword arguments."""
@@ -74,7 +77,7 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-        self, strict: bool = True, tag_formatter: Optional[BaseFormatter] = None, cache_size: int = 1024, **kwargs
+        self, strict: bool = True, tag_formatter: BaseFormatter | None = None, cache_size: int = 1024, **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.
@@ -138,7 +141,7 @@ class ICUMF:
         else:
             return self.compile(ast, raw=string)
 
-    def get_ast(self, string: str) -> Optional[List[Node]]:
+    def get_ast(self, string: str) -> list[Node] | None:
         """
         Parse the input string and returns its corresponding Abstract Syntax Tree (AST).
 
@@ -168,16 +171,16 @@ class ICUMF:
         except Exception:
             return [TextNode(string)]
 
-    def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None, raw: str = "") -> CompiledMessage:
+    def compile(self, nodes: list[Node], formatter: BaseFormatter | None = None, raw: str = "") -> CompiledMessage:
         """Compile the parsed nodes into a callable CompiledMessage instance."""
         return CompiledMessage(self, nodes, raw=raw, formatter=formatter)
 
     def _cached_render_(
         self,
         t: "LocaleTranslator",
-        nodes: Tuple[Node],
-        frozen_kwargs: Tuple[Tuple[str, Any]],
-        formatter: Optional[Callable] = None,
+        nodes: tuple[Node, ...],
+        frozen_kwargs: tuple[tuple[str, Any], ...],
+        formatter: Callable | None = None,
     ) -> str:
         kwargs = dict(frozen_kwargs)
         return self._render_nodes(t, list(nodes), formatter, **kwargs)
@@ -185,8 +188,8 @@ class ICUMF:
     def _render_nodes(
         self,
         t: "LocaleTranslator",
-        nodes: List[Node] | Tuple[Node],
-        formatter: Optional[Callable] = None,
+        nodes: list[Node] | tuple[Node, ...],
+        formatter: Callable | None = None,
         **kwargs,
     ) -> str:
         text = []

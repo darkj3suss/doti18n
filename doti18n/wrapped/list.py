@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any, List, SupportsIndex, Union, overload
+from typing import TYPE_CHECKING, Any, SupportsIndex, overload
 
 if TYPE_CHECKING:
     import doti18n
@@ -15,7 +15,7 @@ class ListWrapper(list):
 
     __slots__ = ("_data", "_path", "_translator", "_strict", "_logger")
 
-    def __init__(self, data: List[Any], path: List[Union[str, int]], translator: "doti18n.LocaleTranslator"):
+    def __init__(self, data: list[Any], path: list[str | int], translator: "doti18n.LocaleTranslator"):
         """Initialize a LocaleList."""
         self._data = data
         self._path = path
@@ -30,7 +30,7 @@ class ListWrapper(list):
     @overload
     def __getitem__(self, index: slice, /) -> list[Any]: ...
 
-    def __getitem__(self, index: Union[SupportsIndex, slice], /) -> Any:
+    def __getitem__(self, index: SupportsIndex | slice, /) -> Any:
         """Construct a path and delegate resolution to the LocaleTranslator."""
         if isinstance(index, slice):
             start, stop, step = index.indices(len(self._data))

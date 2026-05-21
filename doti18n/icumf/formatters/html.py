@@ -1,5 +1,6 @@
 import logging
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from ..nodes import Node, TagNode, TextNode
 from . import BaseFormatter
@@ -25,7 +26,7 @@ class HTMLFormatter(BaseFormatter):
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Optional[Node]]:
+    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Node | None]:
         """Format tags inside messages."""
         if not isinstance(node, TagNode):
             raise TypeError("HTMLFormatter can only process TagNode instances.")

@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Callable, Dict, List, Optional, SupportsIndex, Tuple, Union
+from collections.abc import Callable
+from typing import Any, SupportsIndex
 
 from babel import Locale
 
@@ -27,8 +28,8 @@ class LocaleTranslator:
     def __init__(
         self,
         locale_code: str,
-        current_data: Optional[Union[List[Any], Dict[str, Any]]],
-        default_data: Optional[Union[List[Any], Dict[str, Any]]],
+        current_data: list | dict | None,
+        default_data: list | dict | None,
         default_locale_code: str,
         strict: bool = False,
     ):
@@ -68,7 +69,7 @@ class LocaleTranslator:
             self._logger.warning(f"Failed to load locale '{code}': {e}")
             return lambda n: "other"
 
-    def _get_value_by_path(self, path: List[Union[str, int]]) -> Tuple[Any, Optional[str]]:
+    def _get_value_by_path(self, path: list) -> tuple[Any, str | None]:
         """
         Retrieve the value at the given path.
 
@@ -95,7 +96,7 @@ class LocaleTranslator:
 
         return _NOT_FOUND, None
 
-    def _get_plural_form_key(self, count: int, locale_code: Optional[str]) -> str:
+    def _get_plural_form_key(self, count: int, locale_code: str | None) -> str:
         """
         Determine the plural form key based on a number and locale code.
 
@@ -120,11 +121,11 @@ class LocaleTranslator:
 
     def _get_plural_template(
         self,
-        path: List[Union[str, int]],
+        path: list,
         count: int,
-        current_plural_dict: Dict[str, Any],
-        current_plural_locale_code: Optional[str],
-    ) -> Optional[str]:
+        current_plural_dict: dict[str, Any],
+        current_plural_locale_code: str | None,
+    ) -> str | None:
         """
         Retrieve the plural template string based on the count and locale rules.
 
@@ -158,7 +159,7 @@ class LocaleTranslator:
 
         return template if isinstance(template, str) else None
 
-    def _handle_resolved_value(self, value: Any, path: List[Union[str, int]], found_locale_code: Optional[str]) -> Any:
+    def _handle_resolved_value(self, value: Any, path: list, found_locale_code: str | None) -> Any:
         """
         Process the value obtained from _get_value_by_path.
 
@@ -194,7 +195,7 @@ class LocaleTranslator:
             return value
 
     def _create_plural_handler(
-        self, path: List[Union[str, int]], plural_dict: Dict[str, Any], found_locale_code: Optional[str]
+        self, path: list, plural_dict: dict[str, Any], found_locale_code: str | None
     ) -> Callable:
         """Create the callable plural handler."""
 
@@ -237,7 +238,7 @@ class LocaleTranslator:
 
         return plural_handler
 
-    def _resolve_value_by_path(self, path: List[Union[str, int]]) -> Any:
+    def _resolve_value_by_path(self, path: list) -> Any:
         """
         Retrieve and process a value given its full path.
 
@@ -277,7 +278,7 @@ class LocaleTranslator:
         """Symbolic alias for __getattr__."""
         return self._resolve_value_by_path([name])
 
-    def __getitem__(self, index: SupportsIndex | slice, /) -> Any:
+    def __getitem__(self, index: slice | SupportsIndex, /) -> Any:
         """Handle index access for the top level (e.g., `data['en.yml'][0]`)."""
         current_type = isinstance(self._current_data, list)
         default_type = isinstance(self._default_data, list)
@@ -285,22 +286,22 @@ class LocaleTranslator:
         if not (current_type or default_type):
             raise TypeError("Index access not available for non-list root.")
 
-        def _get_single(idx: int) -> Any:
+        def _get_single(i: int) -> Any:
             if current_type:
                 try:
-                    value = self._current_data[idx]
-                    return self._handle_resolved_value(value, [idx], self.locale_code)
+                    value = self._current_data[i]
+                    return self._handle_resolved_value(value, [i], self.locale_code)
                 except IndexError:
                     pass
 
             if default_type:
                 try:
-                    value = self._default_data[idx]
-                    return self._handle_resolved_value(value, [idx], self._default_locale_code)
+                    value = self._default_data[i]
+                    return self._handle_resolved_value(value, [i], self._default_locale_code)
                 except IndexError:
                     pass
 
-            full_key_path = f"[{idx}]"
+            full_key_path = f"[{i}]"
             if self._strict:
                 raise IndexError(
                     f"Index out of bounds for path '{full_key_path}' "
@@ -308,7 +309,7 @@ class LocaleTranslator:
                 )
             else:
                 self._logger.warning(
-                    f"Index '{idx}' out of bounds for path '{full_key_path}' "
+                    f"Index '{i}' out of bounds for path '{full_key_path}' "
                     f"(looked in current '{self.locale_code}' and default '{self._default_locale_code}'). "
                     "None will be returned."
                 )
@@ -324,7 +325,7 @@ class LocaleTranslator:
         try:
             idx = index.__index__()
         except AttributeError:
-            raise TypeError(f"index must be SupportsIndex or slice, not {type(index).__name__}")
+            raise TypeError(f"index must be int-like or slice, not {type(index).__name__}")
 
         return _get_single(idx)
 
@@ -340,7 +341,7 @@ class LocaleTranslator:
                  LocaleList, plural handler, or None.
         """
         if name in dir(self):
-            return object.__getattribute__(self, name)
+            return Any.__getattribute__(self, name)
 
         return self._resolve_value_by_path([name])
 

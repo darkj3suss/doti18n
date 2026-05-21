@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from textwrap import indent
-from typing import Any, Union
+from typing import Any
 
 from doti18n.utils import _is_plural_dict
 
@@ -39,7 +39,7 @@ class StubList(StubBase):
     def __init__(self, name: str, items: list):
         """Initialize a StubList."""
         super().__init__(name)
-        self.items: list[Union[Any, StubBase]] = []
+        self.items: list[Any | StubBase] = []
         self._parse_items(items)
 
     def _parse_items(self, items: list):
@@ -99,7 +99,7 @@ class StubList(StubBase):
         )
 
         lines.append("    @overload")
-        lines.append(f"    def __getitem__(self, index: Union[SupportsIndex, slice]) -> List[{union_type}]: ...")
+        lines.append(f"    def __getitem__(self, index: SupportsIndex | slice) -> list[{union_type}]: ...")
         lines.append(f"    def __iter__(self) -> Iterator[{union_type}]: ...")
 
         return "\n".join(lines) + "\n"

@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from .errors import DefaultLocaleNotLoadedError, LocaleNotLoadedError
 from .loaders import Loader
@@ -18,11 +18,11 @@ class LocaleData:
 
     def __init__(
         self,
-        path: Union[str, Path],
+        path: str | Path,
         default_locale: str = "en",
         strict: bool = False,
         preload: bool = True,
-        loader: Optional[Loader] = None,
+        loader: Loader | None = None,
     ):
         """
         Initialize the LocaleData manager.
@@ -45,8 +45,8 @@ class LocaleData:
         self._logger = logging.getLogger(f"{self.__class__.__name__}")
         self._loader = loader
         self._strict = strict
-        self._raw_translations: Dict[str, Optional[Dict[str, Any]]] = {}
-        self._locale_translators_cache: Dict[str, LocaleTranslator] = {}
+        self._raw_translations: dict[str, dict[str, Any] | None] = {}
+        self._locale_translators_cache: dict[str, LocaleTranslator] = {}
         if preload:
             self._load_all_translations()
 
@@ -76,7 +76,7 @@ class LocaleData:
                 DefaultLocaleNotLoadedError,
             )
 
-    def _process_data(self, data: Union[Dict[str, Any], List[Tuple[str, Dict[str, Any]]]]):
+    def _process_data(self, data: dict[str, dict[str, Any]] | list[tuple[str, dict[str, Any]]]):
         if isinstance(data, dict):
             for locale_code, locale_data in data.items():
                 if locale_code in self._raw_translations:
@@ -150,7 +150,7 @@ class LocaleData:
             yield self.get_locale(locale_code)
 
     @property
-    def loaded_locales(self) -> List[str]:
+    def loaded_locales(self) -> list[str]:
         """
         Return a list of normalized locale codes that have been successfully loaded.
 
@@ -159,7 +159,7 @@ class LocaleData:
         """
         return [code for code, data in self._raw_translations.items() if isinstance(data, (dict, list))]
 
-    def get_locale(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]:
+    def get_locale(self, locale_code: str, default: Any = None) -> LocaleTranslator | Any | None:
         """
         Retrieve or create a `LocaleTranslator` instance for the specified locale.
 

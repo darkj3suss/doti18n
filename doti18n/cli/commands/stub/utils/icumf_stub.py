@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 from doti18n.icumf import ICUMF, TextNode
 from doti18n.icumf.nodes import FormatNode, MessageNode
@@ -35,7 +34,7 @@ def _extract_icu_kwargs(stack: list, types: dict) -> dict[str, str]:
     return kwargs
 
 
-def generate_icumf_stub(name: str, string: str, types: dict) -> Tuple[str, bool]:
+def generate_icumf_stub(name: str, string: str, types: dict) -> tuple[str, bool]:
     """
     Generate a stub signature for a formatted ICU message string.
 

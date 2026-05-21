@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Any
 
 from ..errors import (
     InvalidLocaleDocumentError,
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Loader:
     """Loader class for loading locale files."""
 
-    def __init__(self, strict: bool = False, icumf: Union[Optional[ICUMF], bool] = None):
+    def __init__(self, strict: bool = False, icumf: ICUMF | bool | None = None):
         """Initialize the Loader class."""
         if icumf is None:
             icumf = ICUMF(strict)
@@ -42,11 +42,11 @@ class Loader:
         self._strict = strict
         self._icumf = icumf
 
-    def get_supported_extensions(self) -> Tuple[str]:
+    def get_supported_extensions(self) -> tuple[str]:
         """Return a list of supported file extensions."""
         return tuple(self.loaders.keys())
 
-    def load(self, filepath: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
+    def load(self, filepath: str | Path) -> dict[str, dict[str, Any]]:
         """
         Load the content of a file and processes it based on its extension.
 
@@ -69,7 +69,7 @@ class Loader:
             return self._throw(f"File '{filename}' has no extension", MissingFileExtensionError)
 
         if loader := self.loaders.get(extension.lower()):
-            data: Dict[str, Any] = loader.load(filepath)
+            data: dict[str, Any] = loader.load(filepath)
             for _, locale in data.items():
                 if isinstance(locale, list):
                     for item in locale:
@@ -94,7 +94,7 @@ class Loader:
                 UnsupportedFileExtensionError,
             )
 
-    def _validate(self, filepath: Union[str, Path], data: dict | list, path: Optional[List[str | int]] = None):
+    def _validate(self, filepath: str | Path, data: dict | list, path: list[str | int] | None = None):
         path = path or []
         if isinstance(data, dict):
             for key in data.keys():
@@ -113,7 +113,7 @@ class Loader:
                 if isinstance(item, (dict, list)):
                     self._validate(filepath, item, path + [index])
 
-    def _process_icumf(self, data: Dict[Any, Any]):
+    def _process_icumf(self, data: dict[Any, Any]):
         """Recursively process data to parse strings using ICUMF."""
         if not (isinstance(self._icumf, ICUMF)):
             return
@@ -137,7 +137,7 @@ class Loader:
                 continue
 
     @staticmethod
-    def _process_macros(data_: Dict[Any, Any]):
+    def _process_macros(data_: dict[Any, Any]):
         """Process macros in the data."""
         keys = ["__macros__"]
         for key in keys:
@@ -146,7 +146,7 @@ class Loader:
         else:
             return
 
-        def replace_macros(data: Dict[Any, Any]) -> Any:
+        def replace_macros(data: dict[Any, Any]) -> Any:
             nonlocal macros
             if isinstance(data, dict):
                 for k, v in data.items():
@@ -178,12 +178,12 @@ class Loader:
 
         replace_macros(data_)
 
-    def _process_data(self, data: Dict[Any, Any]):
+    def _process_data(self, data: dict[Any, Any]):
         """Post-process loaded data."""
         self._process_macros(data)
         self._process_icumf(data)
 
-    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Dict:
+    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict:
         if self._strict:
             raise exc_type(msg)
         else:

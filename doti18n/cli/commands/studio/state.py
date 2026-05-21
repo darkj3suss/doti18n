@@ -1,7 +1,7 @@
 import logging
 import threading
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from doti18n.loaders import Loader
 from doti18n.utils import _deep_merge
@@ -18,16 +18,16 @@ class StudioState:
         self.default_locale = default_locale
         self.loaders = Loader().loaders
         self.supported_extensions = self.loaders.keys()
-        self.locales: Dict[str, Dict[str, Any]] = {}
-        self.files: Dict[str, Path] = {}
-        self.locks: Dict[str, threading.Lock] = {}
+        self.locales: dict[str, dict[str, Any]] = {}
+        self.files: dict[str, Path] = {}
+        self.locks: dict[str, threading.Lock] = {}
         self.global_lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.active_locks: Dict[tuple, str] = {}
+        self.active_locks: dict[tuple, str] = {}
         self._active_locks_lock = threading.Lock()
-        self._save_timer: Optional[threading.Timer] = None
+        self._save_timer: threading.Timer | None = None
         self._save_timer_lock = threading.Lock()
-        self._dirty_locales: set = set()
+        self._dirty_locales: set[str] = set()
 
         self.load()
 
@@ -82,7 +82,7 @@ class StudioState:
                 if locale not in self.locks:
                     self.locks[locale] = threading.Lock()
 
-    def get_translation(self, locale: str) -> Optional[Dict[str, Any]]:
+    def get_translation(self, locale: str) -> dict[str, Any] | None:
         """Get the translation data for a given locale."""
         return self.locales.get(locale)
 
@@ -159,7 +159,7 @@ class StudioState:
                 return True
             return False
 
-    def release_all_locks(self, username: str) -> list:
+    def release_all_locks(self, username: str) -> list[tuple]:
         """Release all locks held by a user. Returns list of (locale, key) tuples released."""
         released = []
         with self._active_locks_lock:
@@ -169,7 +169,7 @@ class StudioState:
                 released.append(k)
         return released
 
-    def get_lock_owner(self, locale: str, key: str) -> Optional[str]:
+    def get_lock_owner(self, locale: str, key: str) -> str | None:
         """Get the username that holds the lock, or None."""
         with self._active_locks_lock:
             return self.active_locks.get((locale, key))
@@ -214,7 +214,7 @@ class StudioState:
             self._dirty_locales.clear()
 
 
-state: Optional[StudioState] = None
+state: StudioState | None = None
 
 
 def init_state(path: str, default_locale: str = "en"):

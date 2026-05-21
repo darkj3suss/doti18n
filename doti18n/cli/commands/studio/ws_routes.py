@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from microdot.microdot import Request
 from microdot.websocket import with_websocket
@@ -10,7 +10,7 @@ from .events import EventContext, dispatch_event
 from .server import app
 from .state import state
 
-clients: Dict[Any, Dict[str, Any]] = {}
+clients: dict[Any, dict[str, Any]] = {}
 
 
 @app.route("/ws")

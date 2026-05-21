@@ -1,10 +1,10 @@
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 _NOT_FOUND = object()
 
 
-def _is_plural_dict(data: Any) -> bool:
+def _is_plural_dict(data: dict) -> bool:
     """
     Check if the given object resembles a dictionary for plural forms.
 
@@ -20,17 +20,8 @@ def _is_plural_dict(data: Any) -> bool:
     return any(key in data and isinstance(data[key], str) for key in plural_keys)
 
 
-def _get_value_by_path_single(path: List[Union[str, int]], data: Optional[Union[List[Any], Dict[str, Any]]]) -> Any:
-    """
-    Retrieve a value by path from a single dictionary.
-
-    Support paths containing both dictionary keys (str) and list indices (int).
-    Return the value found (including None if it's an explicit value),
-    or return a special 'not found' indicator if the path segment does not exist
-    or traversal fails. A simple `None` return cannot distinguish these.
-    Let's use a sentinel value or raise a specific internal exception.
-    Using a sentinel is cleaner as this is an internal helper.
-    """
+def _get_value_by_path_single(path: list, data: list | dict | None) -> Any:
+    """Retrieve a value by path from a single dictionary."""
     current_value = data
 
     for key_or_index in path:
@@ -57,7 +48,7 @@ def _get_locale_code(filename: str) -> str:
     return locale_code_normalized
 
 
-def _deep_merge(source: Optional[Dict[str, Any]], destination: Optional[Dict[str, Any]]) -> None:
+def _deep_merge(source: dict | None, destination: dict | None) -> None:
     if not isinstance(source, dict) or not isinstance(destination, dict):
         return
 

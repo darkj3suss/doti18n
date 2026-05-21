@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, NoReturn, Optional, Union
+from typing import Any, NoReturn
 
 from ..errors import EmptyFileError, ParseError
 from ..utils import _get_locale_code
@@ -31,7 +31,7 @@ class TomlLoader(BaseLoader):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
-    def load(self, filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
+    def load(self, filepath: str | Path) -> dict[str, Any]:
         """Load and validate localization data from a TOML file."""
         if not tomllib:
             raise ImportError("tomllib is not available. TOML support requires Python 3.11+.")
@@ -54,11 +54,11 @@ class TomlLoader(BaseLoader):
         except Exception as e:
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-        return None
+        return {}
 
-    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load and validate localization data from a TOML file, preserving comments."""
-        global tomllib
+        global tomllib, tomlkit
         if not tomlkit:
             raise ImportError("tomlkit is not available. Comment support for TOML files requires the tomlkit package.")
 
@@ -75,7 +75,8 @@ class TomlLoader(BaseLoader):
 
         return data
 
-    def save(self, filepath: Union[str, Path], data: Dict[str, Dict]):
+    @staticmethod
+    def save(filepath: str | Path, data: dict[str, dict]):
         """Save localization data to a TOML file."""
         if not tomlkit:
             raise ImportError("tomlkit is not available. Saving TOML files with comments requires the tomlkit package.")
@@ -84,7 +85,7 @@ class TomlLoader(BaseLoader):
             toml_string = tomlkit.dumps(data)  # type: ignore
             f.write(toml_string)
 
-    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
+    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
             raise exc_type(msg)
         else:
