@@ -1,9 +1,9 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
-from .errors import DefaultLocaleNotLoadedError, LocaleNotLoadedError, UnexpectedMultiLocaleError
+from .errors import DefaultLocaleNotLoadedError, LocaleNotLoadedError
 from .loaders import Loader
 from .locale_translator import LocaleTranslator
 from .utils import _deep_merge
@@ -18,11 +18,11 @@ class LocaleData:
 
     def __init__(
         self,
-        path: Union[str, Path],
+        path: str | Path,
         default_locale: str = "en",
         strict: bool = False,
         preload: bool = True,
-        loader: Optional[Loader] = None,
+        loader: Loader | None = None,
     ):
         """
         Initialize the LocaleData manager.
@@ -45,8 +45,8 @@ class LocaleData:
         self._logger = logging.getLogger(f"{self.__class__.__name__}")
         self._loader = loader
         self._strict = strict
-        self._raw_translations: Dict[str, Optional[Dict[str, Any]]] = {}
-        self._locale_translators_cache: Dict[str, LocaleTranslator] = {}
+        self._raw_translations: dict[str, dict[str, Any] | None] = {}
+        self._locale_translators_cache: dict[str, LocaleTranslator] = {}
         if preload:
             self._load_all_translations()
 
@@ -63,20 +63,20 @@ class LocaleData:
             self._throw(f"No localization files found or successfully loaded from '{self.path}'.", LocaleNotLoadedError)
 
         default_data = self._raw_translations.get(self.default_locale)
-        if not isinstance(default_data, dict):
+        if not isinstance(default_data, (dict, list)):
             if self.default_locale not in self._raw_translations:
-                self._raw_translations[self.default_locale] = None  # Ensure entry exists
-            elif not isinstance(default_data, dict):
-                self._raw_translations[self.default_locale] = None  # None if not a dict
+                self._raw_translations[self.default_locale] = None
+            elif not isinstance(default_data, (dict, list)):
+                self._raw_translations[self.default_locale] = None
 
             self._throw(
-                f"Default locale was not found or root is not a dictionary "
+                f"Default locale was not found or root is not a dict or list "
                 f"({type(default_data).__name__ if default_data is not None else 'NoneType'}). "
                 "Fallback to the default locale will be limited or impossible.",
                 DefaultLocaleNotLoadedError,
             )
 
-    def _process_data(self, data: Union[Dict[str, Any], List[Tuple[str, Dict[str, Any]]]]):
+    def _process_data(self, data: dict[str, dict[str, Any]] | list[tuple[str, dict[str, Any]]]):
         if isinstance(data, dict):
             for locale_code, locale_data in data.items():
                 if locale_code in self._raw_translations:
@@ -112,9 +112,9 @@ class LocaleData:
             return self._locale_translators_cache[normalized_locale_code]
 
         current_locale_data = self._raw_translations.get(normalized_locale_code)
-        if not isinstance(current_locale_data, dict):
+        if not isinstance(current_locale_data, (dict, list)):
             self._logger.warning(
-                f"Locale '{locale_code}' was not found or root is not a dictionary. "
+                f"Locale '{locale_code}' was not found or root is not a dict or list. "
                 f"({type(current_locale_data).__name__ if current_locale_data is not None else 'NoneType'}). "
                 f"Falling back to default locale '{self.default_locale}'.",
             )
@@ -138,7 +138,7 @@ class LocaleData:
         :return: True if the locale was loaded and its root is a dictionary, False otherwise.
         """
         normalized_locale_code = locale_code.lower()
-        return isinstance(self._raw_translations.get(normalized_locale_code), dict)
+        return isinstance(self._raw_translations.get(normalized_locale_code), (dict, list))
 
     def __iter__(self):
         """
@@ -150,16 +150,16 @@ class LocaleData:
             yield self.get_locale(locale_code)
 
     @property
-    def loaded_locales(self) -> List[str]:
+    def loaded_locales(self) -> list[str]:
         """
         Return a list of normalized locale codes that have been successfully loaded.
 
         :return: A list of normalized locale codes (e.g., ['en', 'fr']).
         :rtype: List[str]
         """
-        return [code for code, data in self._raw_translations.items() if isinstance(data, dict)]
+        return [code for code, data in self._raw_translations.items() if isinstance(data, (dict, list))]
 
-    def get_locale(self, locale_code: str, default: Any = None) -> Union[Optional[LocaleTranslator], Any]:
+    def get_locale(self, locale_code: str, default: Any = None) -> LocaleTranslator | Any | None:
         """
         Retrieve or create a `LocaleTranslator` instance for the specified locale.
 
@@ -177,7 +177,7 @@ class LocaleData:
         locale_code = locale_code.lower()
         if locale_code in self._locale_translators_cache:
             return self._locale_translators_cache[locale_code]
-        elif locale_code in self.loaded_locales and type(self._raw_translations[locale_code]) is dict:
+        elif locale_code in self.loaded_locales and isinstance(self._raw_translations[locale_code], (dict, list)):
             _t = LocaleTranslator(
                 locale_code,
                 self._raw_translations[locale_code],
@@ -232,13 +232,7 @@ class LocaleData:
             )
 
         data = self._loader.load(found_path)
-        if isinstance(data, list):
-            return self._throw(
-                f"Locale file at path '{found_path}' contains multiple locales.", UnexpectedMultiLocaleError
-            )
-
-        else:
-            return self._process_data(data)
+        return self._process_data(data)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR):
         if self._strict:

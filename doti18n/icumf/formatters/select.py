@@ -1,6 +1,8 @@
 import logging
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
+from ...utils import _NOT_FOUND
 from ..nodes import MessageNode, Node
 from . import BaseFormatter
 
@@ -27,18 +29,21 @@ class SelectFormatter(BaseFormatter):
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Optional[Node]]:
+    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Node | None]:
         """Format a select message."""
         if not isinstance(node, MessageNode):
             raise TypeError("SelectFormatter can only process MessageNode instances.")
 
         options = node.options
-        option = kwargs.get(node.name, None)
+        option = kwargs.get(node.name, _NOT_FOUND)
         if option not in options:
             if "other" in options:
-                self._logger.warning(
-                    f"Option '{option}' is not valid option for '{node.name}'. " f"Fallback to 'other'."
-                )
+                if option is _NOT_FOUND:
+                    self._logger.warning(f"No option provided for '{node.name}'. " f"Fallback to 'other'.")
+                else:
+                    self._logger.warning(
+                        f"Option '{option}' is not valid option for '{node.name}'. " f"Fallback to 'other'."
+                    )
                 option = "other"
             else:
                 return self._throw(

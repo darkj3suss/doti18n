@@ -49,10 +49,6 @@ When enabled, all locale files in the specified directory are loaded into memory
 
 **Preloading is enabled by default.**
 
-!!! warning
-    `preload=True` is the **only** way to load [multilocale files](supported_formats.md#multilocale-files). 
-    Attempting to load multilocale configurations via `get_locale()` will result in an error.
-
 ### Disabling Preload
 
 To disable preloading, set `preload=False` during initialization. 

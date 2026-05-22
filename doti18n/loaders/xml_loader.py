@@ -1,7 +1,7 @@
 import logging
 import xml.etree.ElementTree as Et
 from pathlib import Path
-from typing import Any, Dict, List, NoReturn, Optional, Union
+from typing import Any, NoReturn
 from xml.etree.ElementTree import XMLParser
 
 from ..errors import (
@@ -59,11 +59,11 @@ class XmlLoader(BaseLoader):
         """Initialize the XmlLoader class."""
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
-        self._root_tags: Dict[str, str] = {}
-        self._explicit_lists: Dict[str, Dict[str, str]] = {}
+        self._root_tags: dict[str, str] = {}
+        self._explicit_lists: dict[str, dict[str, str]] = {}
 
     # ruff: noqa: C901
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: str | Path) -> dict[str, Any]:
         """Load and processes localization data from an XML file."""
         filepath = Path(filepath)
         filename = filepath.name
@@ -71,35 +71,10 @@ class XmlLoader(BaseLoader):
         try:
             tree = Et.parse(filepath)
             root = tree.getroot()
-            multiple = root.tag in ("locales", "localizations", "translations")
-            locale_code = "" if multiple else _get_locale_code(filename)
+            locale_code = _get_locale_code(filename)
             data = self._etree_to_dict(root, locale_code)
             if not data:
                 return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-
-            if multiple:
-                if not isinstance(data, dict):
-                    return self._throw(
-                        f"File '{filename}': multiple locales expected, but got {type(data).__name__}",
-                        InvalidLocaleDocumentError,
-                    )
-
-                processed = []
-                for loc_code, translations in data.items():
-                    if loc_code.startswith("comment_"):
-                        continue
-
-                    if not isinstance(translations, dict):
-                        return self._throw(
-                            f"File '{filename}': locale '{loc_code}': data must be a dict, "
-                            f"got {type(translations).__name__}",
-                            InvalidLocaleDocumentError,
-                        )
-
-                    self._root_tags[loc_code] = root.tag
-                    processed.append({"locale": loc_code, **translations})
-
-                return processed
 
             if not isinstance(data, dict):
                 return self._throw(
@@ -118,7 +93,7 @@ class XmlLoader(BaseLoader):
         except Exception as e:
             return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load and process localization data from an XML file, preserving comments."""
         filepath = Path(filepath)
         filename = filepath.name
@@ -127,17 +102,10 @@ class XmlLoader(BaseLoader):
             parser = XMLParser(target=Parser())
             tree = Et.parse(filepath, parser=parser)
             root = tree.getroot()
-            multiple = root.tag in ("locales", "localizations", "translations")
-            locale_code = "" if multiple else _get_locale_code(filename)
+            locale_code = _get_locale_code(filename)
             data = self._etree_to_dict(root, locale_code)
             if not data:
                 return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-
-            if multiple:
-                self._throw(
-                    "File '{filename}' contains multiple locales, which is not supported to load with comments.",
-                    NotImplementedError,
-                )
 
             if not isinstance(data, dict):
                 return self._throw(
@@ -156,7 +124,7 @@ class XmlLoader(BaseLoader):
         except Exception as e:
             return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-    def save(self, filepath: Union[str, Path], data: Dict[str, Any]):
+    def save(self, filepath: str | Path, data: dict[str, Any]):
         """Save localization data to an XML file."""
         if not data:
             self._throw(f"Cannot save empty data to '{filepath}'", ValueError)
@@ -179,7 +147,7 @@ class XmlLoader(BaseLoader):
         with open(filepath, "wb") as f:
             tree.write(f, encoding="utf-8", xml_declaration=True)
 
-    def _etree_to_dict(self, node: Et.Element, locale_code: str = "", path: str = "") -> Union[Dict, List, str]:
+    def _etree_to_dict(self, node: Et.Element, locale_code: str = "", path: str = "") -> dict | list | str:
         if node.attrib.get("list", "").lower() == "true":
             if locale_code and path:
                 tag_dict = self._explicit_lists.setdefault(locale_code, {})
@@ -191,7 +159,7 @@ class XmlLoader(BaseLoader):
         if not has_children or all(getattr(child, "tag", None) in self.INLINE_TAGS for child in node):
             return self._get_inner_xml(node)
 
-        result: Dict[str, Any] = {}
+        result: dict[str, Any] = {}
         for child in node:
             if callable(child.tag):  # ElementTree uses callables for Comments
                 result[f"comment_{id(child)}"] = self._etree_to_dict(child, locale_code, path)
@@ -212,7 +180,7 @@ class XmlLoader(BaseLoader):
 
         return result
 
-    def _dict_to_etree(self, data: Dict[str, Any], parent: Et.Element, locale_code: str = "", path: str = "") -> None:
+    def _dict_to_etree(self, data: dict[str, Any], parent: Et.Element, locale_code: str = "", path: str = ""):
         for key, value in data.items():
             if key.startswith("comment_"):
                 parent.append(Et.Comment(str(value)))
@@ -231,7 +199,7 @@ class XmlLoader(BaseLoader):
                 child = Et.SubElement(parent, key, attrib)
                 self._set_node_value(child, value, locale_code, current_path)
 
-    def _set_node_value(self, node: Et.Element, value: Any, locale_code: str, path: str) -> None:
+    def _set_node_value(self, node: Et.Element, value: Any, locale_code: str, path: str):
         if isinstance(value, dict):
             self._dict_to_etree(value, node, locale_code, path)
             return
@@ -265,8 +233,9 @@ class XmlLoader(BaseLoader):
 
         return "".join(parts)
 
-    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
+    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
             raise exc_type(msg)
-        self._logger.log(lvl, msg)
-        return {}
+        else:
+            self._logger.log(lvl, msg)
+            return {}

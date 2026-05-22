@@ -54,7 +54,6 @@ If you haven't read the [setup instruction](./setup.md), please do so first.
             accept_language = request.headers.get('accept-language')
             language = self._get_best_match_language(accept_language)
             request.state.locale = language
-            request.state.translator = i18n[language]
             response = await call_next(request)
             return response
     
@@ -72,7 +71,7 @@ If you haven't read the [setup instruction](./setup.md), please do so first.
     
     @router.get("/")
     async def main(request: Request):
-        t = request.state.translator
+        t = i18n[request.state.locale].main
         
         return {"message": t.hello}
     

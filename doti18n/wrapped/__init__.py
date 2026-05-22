@@ -1,13 +1,13 @@
-from .locale_list import LocaleList
-from .locale_namespace import LocaleNamespace
-from .none_wrapper import NoneWrapper
-from .plural_wrapper import PluralWrapper
-from .string_wrapper import StringWrapper
+from .list import ListWrapper
+from .namespace import NamespaceWrapper
+from .none import NoneWrapper
+from .plural import PluralWrapper
+from .string import StringWrapper
 
 __all__ = [
-    "LocaleNamespace",
-    "PluralWrapper",
-    "LocaleList",
+    "ListWrapper",
+    "NamespaceWrapper",
     "NoneWrapper",
+    "PluralWrapper",
     "StringWrapper",
 ]

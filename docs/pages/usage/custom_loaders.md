@@ -5,9 +5,7 @@ To create a loader, define a class that inherits from `doti18n.loaders.BaseLoade
 
 1.  **`file_extension`**: A string attribute defining the extension (e.g., `.custom`).
 2.  **`__init__`**: Must accept a `strict: bool` argument.
-3.  **`load` method**: Must read the file and return data in one of these formats:
-    - **Single locale:** `{ "en": { ... } }` (derived from filename).
-    - **Multilocale:** `[ {...}, {...} ]`. (with key `__locale__` inside each dict).
+3.  **`load` method**: Must read the file and return data in format `{ "en": { ... } }` (locale name derived from filename).
 
 !!! warning "Execution order"
     You **must** define or import your custom loader **before** creating the `LocaleData` instance.

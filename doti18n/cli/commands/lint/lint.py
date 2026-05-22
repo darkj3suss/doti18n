@@ -1,18 +1,17 @@
 import logging
-from typing import Optional
 
 from doti18n.icumf import ICUMF, html_pattern, icumf_pattern
 from doti18n.icumf.nodes import FormatNode, MessageNode, TagNode
-from ..stub.formatted_stub import PLACEHOLDER_REGEX
+from doti18n.wrapped.string import PLACEHOLDER_REGEX
 
 logger = logging.getLogger("doti18n.lint")
 PROBLEMS = 0
 
 
-def _lint(locale_code: str, locale_data: dict, source_data: dict, path: str = "", icumf: Optional[ICUMF] = None):
+def _lint(locale_code: str, locale_data: dict, source_data: dict, path: str = "", icumf: ICUMF | None = None):
     global PROBLEMS
     if isinstance(locale_data, dict) and isinstance(source_data, dict):
-        lint_dict(locale_code, locale_data, source_data, path, icumf)
+        lint(locale_code, locale_data, source_data, path, icumf)
     elif isinstance(locale_data, list) and isinstance(source_data, list):
         _lint_list(locale_code, locale_data, source_data, path, icumf)
     else:
@@ -134,32 +133,36 @@ def _lint_formatted(locale_code: str, locale_data: str, source_data: str, path: 
         PROBLEMS += 1
 
 
-def lint_dict(locale_code: str, locale_data: dict, source_data: dict, path: str = "", icumf: Optional[ICUMF] = None):
-    """
-    Recursively lint a locale dictionary against the source dictionary.
-
-    Checking for missing keys, type mismatches, and placeholder consistency.
-    """
+def lint(locale_code: str, locale_data, source_data, path: str = "", icumf: ICUMF | None = None):
+    """Recursively lint a locale structure against the source structure."""
     global PROBLEMS
-    for key, source_value in source_data.items():
-        current_path = f"{path}.{key}" if path else key
-        if key not in locale_data:
-            logger.error(f"[{locale_code}] Missing key: {current_path}")
-            PROBLEMS += 1
-            continue
 
-        locale_value = locale_data[key]
-        _lint(locale_code, locale_value, source_value, current_path, icumf)
-
-    for key in locale_data.keys():
-        if key not in source_data:
+    if isinstance(source_data, dict) and isinstance(locale_data, dict):
+        for key, source_value in source_data.items():
             current_path = f"{path}.{key}" if path else key
-            logger.warning(f"[{locale_code}] Extra key: {current_path}")
+            if key not in locale_data:
+                logger.error(f"[{locale_code}] Missing key: {current_path}")
+                PROBLEMS += 1
+                continue
+
+            locale_value = locale_data[key]
+            _lint(locale_code, locale_value, source_value, current_path, icumf)
+
+        for key in locale_data.keys():
+            if key not in source_data:
+                current_path = f"{path}.{key}" if path else key
+                logger.warning(f"[{locale_code}] Extra key: {current_path}")
+
+    elif isinstance(source_data, list) and isinstance(locale_data, list):
+        _lint_list(locale_code, locale_data, source_data, path, icumf)
+
+    else:
+        _lint(locale_code, locale_data, source_data, path, icumf)
 
     return PROBLEMS
 
 
-def _lint_list(locale_code: str, locale_list: list, source_list: list, path: str, icumf: Optional[ICUMF] = None):
+def _lint_list(locale_code: str, locale_list: list, source_list: list, path: str, icumf: ICUMF | None = None):
     global PROBLEMS
     if len(locale_list) != len(source_list):
         logger.error(

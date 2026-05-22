@@ -44,23 +44,3 @@ class DefaultLocaleNotLoadedError(Doti18nError):
 
     If you have only one locale, you can set it as the default locale.
     """
-
-
-class UnexpectedMultiLocaleError(MultipleLocaleError):
-    """
-    Exception raised when a file contains multiple locales.
-
-    It's not possible to use multiple locales for a single LocaleTranslator
-    Instead of this, use preload=True in LocaleData, and use .get_translation() method.
-    Or just use the scheme 'one locale = one file'
-    """
-
-
-class LocaleIdentifierMissingError(MultipleLocaleError):
-    """
-    Exception raised when a locale file does not contain a locale identifier.
-
-    You can use multiple locales in one file, but you must specify a locale identifier
-    for each locale. Basically this identifies "locale", but you can read more in detail
-    in the documentation.
-    """

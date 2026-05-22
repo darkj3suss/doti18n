@@ -1,7 +1,6 @@
 import logging
 import re
 
-
 PLACEHOLDER_REGEX = re.compile(
     r"""
         (?P<py_escape>\{\{|}}) |

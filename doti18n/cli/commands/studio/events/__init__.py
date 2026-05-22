@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger("doti18n.studio.events")
 
@@ -10,7 +10,7 @@ class EventContext:
     """Context object passed to event handlers, containing user information, client connections, and state."""
 
     username: str
-    clients: Dict[Any, Any]
+    clients: dict[Any, Any]
     state: Any
 
 

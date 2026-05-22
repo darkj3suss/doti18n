@@ -62,11 +62,10 @@ If you haven't read the [setup instruction](./setup.md), please do so first.
         language = _get_best_match_language(accept_language)
 
         g.locale = language
-        g.t = i18n[language]
     
     @app.route("/")
     def main():
-        t = g.t.main
+        t = i18n[g.locale].main
         
         return {"message": t.hello}
     

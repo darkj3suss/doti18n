@@ -19,7 +19,6 @@ If you haven't read the [setup instruction](./setup.md), please do so first.
             accept_language = request.headers.get('Accept-Language')
             language = self._get_best_match_language(accept_language)
             request.locale = language
-            request.t = i18n[language]
             response = self.get_response(request)
             return response
     
@@ -49,7 +48,7 @@ If you haven't read the [setup instruction](./setup.md), please do so first.
     from django.http import JsonResponse
     
     def main(request):
-        t = request.t.main
+        t = i18n[request.locale].main
         
         return JsonResponse({"message": t.hello})
     ```

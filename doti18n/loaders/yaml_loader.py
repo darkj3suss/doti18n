@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, NoReturn, Optional, Union
+from typing import Any, NoReturn
 
 from ..errors import EmptyFileError, ParseError
 from ..utils import _get_locale_code
@@ -28,7 +28,7 @@ class YamlLoader(BaseLoader):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._strict = strict
 
-    def load(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load(self, filepath: str | Path) -> dict[str, Any]:
         """Load and validate localization data from a YAML file."""
         if not yaml:
             raise ImportError("PyYAML package is not installed, cannot load YAML files.")
@@ -43,12 +43,11 @@ class YamlLoader(BaseLoader):
                 if not data:
                     return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
 
-                if len(data) > 1:
-                    return data
-
                 else:
                     self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
-                    return {locale_code: data[0]}
+                    if len(data) == 1:
+                        data = data[0]
+                    return {locale_code: data}
 
         except FileNotFoundError:
             self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
@@ -57,9 +56,9 @@ class YamlLoader(BaseLoader):
         except Exception as e:
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-        return None
+        return {}
 
-    def load_with_comments(self, filepath: Union[str, Path]) -> Optional[Union[Dict, List[dict]]]:
+    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load a YAML file while preserving comments."""
         global yaml
         if not ryaml:
@@ -80,7 +79,7 @@ class YamlLoader(BaseLoader):
         return data
 
     @staticmethod
-    def save(filepath: Union[str, Path], data: Dict[str, Dict]):
+    def save(filepath: str | Path, data: dict[str, dict]):
         """Save localization data to a YAML file."""
         global yaml
         if not ryaml:
@@ -93,7 +92,7 @@ class YamlLoader(BaseLoader):
         with open(filepath, "w", encoding="utf-8") as f:
             _yaml.dump(data, f)
 
-    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> Union[Dict, NoReturn]:
+    def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
             raise exc_type(msg)
         else:

@@ -1,5 +1,6 @@
 import logging
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from ..nodes import MessageNode, Node
 from . import BaseFormatter
@@ -27,7 +28,7 @@ class PluralFormatter(BaseFormatter):
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Optional[Node]]:
+    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Node | None]:
         """Format a plural message."""
         if not isinstance(node, MessageNode):
             raise TypeError("PluralFormatter can only process MessageNode instances.")

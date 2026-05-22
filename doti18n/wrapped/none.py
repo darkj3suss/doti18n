@@ -7,19 +7,13 @@ class NoneWrapper:
 
     This class is designed to provide a fallback mechanism when a specific locale or
     path is not found during runtime. It primarily serves as a way to log warnings and
-    return default values, such as `None`, for missing keys or attributes. This can be
-    useful in localized applications or scenarios where attribute lookups might fail.
+    return default values, such as `None`, for missing keys or attributes.
     """
 
     __slots__ = ("_path", "_locale_code", "_logger")
 
     def __init__(self, locale_code: str, path: str):
-        """
-        Initialize an instance of the class with a given locale code and path.
-
-        :param locale_code: The locale code representing the language or region.
-        :param path: The file path or directory associated with the instance.
-        """
+        """Initialize an instance of the class with a given locale code and path."""
         self._path = path
         self._logger = logging.getLogger(f"{self.__class__.__name__}[{repr(locale_code)}]")
         self._locale_code = locale_code

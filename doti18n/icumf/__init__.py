@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 import re
+from collections.abc import Callable
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional
 
 from .formatters import *
 from .nodes import FormatNode, MessageNode, Node, TagNode, TextNode
@@ -9,6 +12,61 @@ from .parser import Parser
 
 if TYPE_CHECKING:
     from doti18n import LocaleTranslator
+
+
+class CompiledMessage:
+    """Wrapper for compiled ICUMF expressions."""
+
+    def __init__(
+        self,
+        engine: "ICUMF",
+        nodes: list[Node],
+        raw: str = "",
+        formatter: Callable | None = None,
+    ):
+        """Initialize the CompiledMessage with the ICUMF engine, parsed nodes, raw string, and optional formatter."""
+        self.engine = engine
+        self.raw = raw
+        self.formatter = formatter
+        self.is_cached = engine.cache_size > 0
+        self.nodes: tuple[Node, ...] | list[Node] = tuple(nodes) if self.is_cached else nodes
+        self.t: Optional[LocaleTranslator] = None
+
+    def __call__(self, **kwargs) -> str:
+        """Render the compiled message with the provided keyword arguments."""
+        if not self.t:
+            raise RuntimeError("CompiledMessage is not bound to a LocaleTranslator.")
+        try:
+            if self.is_cached:
+                frozen_kwargs = tuple(sorted(kwargs.items())) if kwargs else tuple()
+                if not isinstance(self.nodes, tuple):
+                    self.nodes = tuple(self.nodes)
+                return self.engine._cached_render(self.t, self.nodes, frozen_kwargs, self.formatter)
+            else:
+                if not isinstance(self.nodes, list):
+                    self.nodes = list(self.nodes)
+                return self.engine._render_nodes(self.t, self.nodes, self.formatter, **kwargs)
+
+        except Exception as e:
+            msg = f"Failed to render ICUMF message: {self.raw!r} with args {kwargs} | Error: {e}"
+
+            if self.engine._strict:
+                raise RuntimeError(msg) from None
+            else:
+                self.engine._logger.error(msg)
+                return ""
+
+    def bind(self, t: "LocaleTranslator"):
+        """Bind LocaleTranslator to the object."""
+        self.t = t
+
+    def __repr__(self) -> str:
+        """Return a debug representation of the CompiledMessage."""
+        return f"<{self.__class__.__name__} raw={self.raw!r}>"
+
+    def __str__(self) -> str:
+        """Return the raw ICUMF string representation."""
+        return self.raw
 
 
 icumf_pattern = re.compile(r"\{\s*\w+\s*,\}")
@@ -19,7 +77,7 @@ class ICUMF:
     """Main class for ICUMF formatting."""
 
     def __init__(
-        self, strict: bool = True, tag_formatter: Optional[BaseFormatter] = None, cache_size: int = 1024, **kwargs
+        self, strict: bool = True, tag_formatter: BaseFormatter | None = None, cache_size: int = 1024, **kwargs
     ):
         """
         Initialize the ICUMF formatter with available formatters.
@@ -29,6 +87,7 @@ class ICUMF:
         :param cache_size: The size of the cache for rendered entries.
         :param kwargs: Additional keyword arguments for ICUMF parser configuration.
         """
+        self.cache_size = cache_size
         self.formatters = {}
         for formatter_name, formatter_cls in BaseFormatter._FORMATTERS.items():
             self.formatters[formatter_name] = formatter_cls(strict=strict)
@@ -47,7 +106,8 @@ class ICUMF:
 
         self._strict = strict
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render_)
+        if cache_size is not None and cache_size > 0:
+            self._cached_render = lru_cache(maxsize=cache_size)(self._cached_render_)
 
     def parse(self, string: str) -> Any:
         """
@@ -67,12 +127,8 @@ class ICUMF:
 
         # explicit ICUMF
         if string.startswith("icu:"):
-            string = string[4:]
-            func = self.compile(self.parser.parse(string))
-            if callable(func):
-                func.raw = string  # type: ignore
-
-            return func
+            raw_string = string[4:]
+            return self.compile(self.parser.parse(raw_string), raw=raw_string)
 
         if not (icumf_pattern.search(string) or html_pattern.search(string)):
             return string
@@ -83,13 +139,9 @@ class ICUMF:
             self._throw(f"Error parsing ICUMF string: {e}", ValueError, logging.WARNING)
             return string
         else:
-            func = self.compile(ast)
-            if callable(func):
-                func.raw = string  # type: ignore
+            return self.compile(ast, raw=string)
 
-            return func
-
-    def get_ast(self, string: str) -> Optional[List[Node]]:
+    def get_ast(self, string: str) -> list[Node] | None:
         """
         Parse the input string and returns its corresponding Abstract Syntax Tree (AST).
 
@@ -119,28 +171,16 @@ class ICUMF:
         except Exception:
             return [TextNode(string)]
 
-    def compile(self, nodes: List[Node], formatter: Optional[BaseFormatter] = None) -> Callable:
-        """
-        Compile the parsed nodes into a callable formatter function.
-
-        :param nodes: The list of parsed nodes.
-        :param formatter: An optional formatter function to use for tags.
-        :return: A callable function that formats strings based on the nodes.
-        """
-        tuple_nodes: Tuple = tuple(nodes)
-        return lambda t, **kwargs: self._render_entry(t, tuple_nodes, **{"formatter": formatter, **kwargs})
-
-    def _render_entry(self, t: "LocaleTranslator", nodes: Tuple[Node], **kwargs) -> str:
-        formatter = kwargs.pop("formatter", None)
-        frozen_kwargs = tuple(sorted(kwargs.items())) if kwargs else ()
-        return self._cached_render(t, nodes, frozen_kwargs, formatter)
+    def compile(self, nodes: list[Node], formatter: BaseFormatter | None = None, raw: str = "") -> CompiledMessage:
+        """Compile the parsed nodes into a callable CompiledMessage instance."""
+        return CompiledMessage(self, nodes, raw=raw, formatter=formatter)
 
     def _cached_render_(
         self,
         t: "LocaleTranslator",
-        nodes: Tuple[Node],
-        frozen_kwargs: Tuple[Tuple[str, Any]],
-        formatter: Optional[Callable] = None,
+        nodes: tuple[Node, ...],
+        frozen_kwargs: tuple[tuple[str, Any], ...],
+        formatter: Callable | None = None,
     ) -> str:
         kwargs = dict(frozen_kwargs)
         return self._render_nodes(t, list(nodes), formatter, **kwargs)
@@ -148,8 +188,8 @@ class ICUMF:
     def _render_nodes(
         self,
         t: "LocaleTranslator",
-        nodes: List[Node],
-        formatter: Optional[Callable] = None,
+        nodes: list[Node] | tuple[Node, ...],
+        formatter: Callable | None = None,
         **kwargs,
     ) -> str:
         text = []

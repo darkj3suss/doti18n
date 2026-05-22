@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from ..nodes import Node
 
@@ -22,10 +23,10 @@ class BaseFormatter(ABC):
 
         :param strict: Whether to enforce strict formatting rules.
         """
-        raise NotImplementedError
+        self.strict = strict
 
     @abstractmethod
-    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Optional[Node]]:
+    def __call__(self, t: "LocaleTranslator", node: Node, **kwargs) -> Sequence[Node | None]:
         """
         Format a message with the given variables.
 

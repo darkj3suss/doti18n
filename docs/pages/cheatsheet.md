@@ -184,54 +184,6 @@ print(i18n["en"].greeting)   # Output: Hello World!
     other = "You have {count} new notifications."
     ```
 
----
-
-## Multilocale
-
-For more information, see [Supported Formats](usage/supported_formats.md#multilocale-files).
-
-=== "YAML"
-    `locales/locales.yaml`:
-    ```yaml
-    __locale__: "en"
-    hello: "Hello!"
-    ---
-    __locale__: "fr"
-    hello: "Bonjour!"
-    ```
-
-=== "JSON"
-    `locales/locales.json`:
-    ```json
-    [
-      {"__locale__": "en", "hello": "Hello!"},
-      {"__locale__": "fr", "hello": "Bonjour!"}
-    ]
-    ```
-
-=== "XML"
-    `locales/locales.xml`:
-    ```xml
-    <locales>
-      <en><hello>Hello!</hello></en>
-      <fr><hello>Bonjour!</hello></fr>
-    </locales>
-    ```
-
-=== "TOML"
-    `locales/locales.toml`:
-    ```toml
-    [[locales]]
-    __locale__ = "en"
-    hello = "Hello!"
-
-    [[locales]]
-    __locale__ = "fr"
-    hello = "Bonjour!"
-    ```
-
----
-
 ## Macros
 
 Macros are resolved **once at load-time**. Use the `__macros__` or `__doti18n__` key and the `@` prefix.  
@@ -286,17 +238,11 @@ print(i18n["en"].welcome)  # Output: Welcome to doti18n!
 
 ## Formatting Styles
 
-Call the key as a function `()` to apply formatting. doti18n supports Python, Shell, and C-style formatting natively.  
+Call the key as a function `()` to apply formatting. doti18n supports Python formatting natively.  
 For more information, see [Formatting](usage/formatting.md).
 
-| Style       | Syntax             | Example              | Python Call       |
-|:------------|:-------------------|:---------------------|:------------------|
-| **Python**  | `{var}`            | `"Hello, {name}!"`   | `key(name="Bob")` |
-| **Shell**   | `$var` or `${var}` | `"Hello, $name!"`    | `key(name="Bob")` |
-| **C-style** | `%s` or `%(var)s`  | `"Hello, %(name)s!"` | `key(name="Bob")` |
-
 !!! tip "Escaping"
-    Double the characters to escape them: `{{`, `}}`, `$$`, `%%`.
+    Double the characters to escape them: `{{`, `}}`.
 
 ---
 
