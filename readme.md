@@ -27,7 +27,7 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
     *   **Strict:** Raises exceptions for missing keys (good for dev/test).
     *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
 *   **Fallback:** Automatically falls back to the default locale if a key is missing.
-*   **Macros:** Define reusable snippets for common patterns (e.g., reusable gender-select ICU snippets).
+*   **Macros:** Define reusable snippets for common patterns (e.g., reusable ICU snippets).
 *   **Powerful CLI:** Generate stubs, lint for missing keys and run a web-based translation studio.
 
 ## Installation
