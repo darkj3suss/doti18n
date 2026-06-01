@@ -1,3 +1,20 @@
+## Fallback Locale
+doti18n supports a fallback mechanism to ensure that missing translations do not break the application. 
+When a key is not found in the requested locale, doti18n automatically falls back to the default locale (e.g., "en") if it is configured.
+
+### Configuring Fallback Locale
+To set a fallback locale, use the `default_locale` parameter during initialization:
+
+```python
+from doti18n import LocaleData
+
+# Initialize with a fallback locale
+i18n = LocaleData("locales", default_locale="en")
+```
+
+For more details on fallback behavior, see the [Fallback](usage/fallback.md) section.
+
+
 ## Strict / Non-Strict Mode
 
 doti18n operates in two modes to accommodate different stages of development and production requirements.

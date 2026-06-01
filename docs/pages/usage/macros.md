@@ -152,6 +152,6 @@ While [Formatting](formatting.md) handles dynamic values (like usernames or coun
 
 | Feature             | Macros                  | Formatting                     |
 |:--------------------|:------------------------|:-------------------------------|
-| **Syntax**          | `@macro_name`           | `{var}`, `$var`, or `%s`       |
+| **Syntax**          | `@macro_name`           | `{var}`                        |
 | **When it happens** | Load-time (static)      | Run-time (dynamic)             |
 | **Storage**         | Removed from final data | Remains in the string template |

@@ -3,7 +3,6 @@ doti18n supports python-style formatting out of the box.
 ### Supported Syntax
 
 **Python-style** (Curly braces `{}`)
-
 - `"Hello, {}!"` (positional)
 - `"Hello, {name}!"` (named)
 - `"Balance: {count:.2f}"` (with format spec)
@@ -19,7 +18,7 @@ doti18n supports python-style formatting out of the box.
 === "YAML"
     `locales/en.yaml`:
     ```yaml
-    balance_python: "Your balance is {amount:.2f} dollars."
+    balance: "Your balance is {amount:.2f} dollars."
     hello: "Hello, {name}!"
     escaped_str: "Literal braces: {{ and }}."
     ```
@@ -28,7 +27,7 @@ doti18n supports python-style formatting out of the box.
     `locales/en.json`:
     ```json
     {
-        "balance_python": "Your balance is {amount:.2f} dollars.",
+        "balance": "Your balance is {amount:.2f} dollars.",
         "hello": "Hello, {name}!",
         "escaped_str": "Literal braces: {{ and }}."
     }
@@ -38,7 +37,7 @@ doti18n supports python-style formatting out of the box.
     `locales/en.xml`:
     ```xml
     <locale>
-        <balance_python>Your balance is {amount:.2f} dollars.</balance_python>
+        <balance>Your balance is {amount:.2f} dollars.</balance>
         <hello>Hello, {name}!</hello>
         <escaped_str>Literal braces: {{ and }}.</escaped_str>
     </locale>
@@ -60,7 +59,7 @@ from doti18n import LocaleData
 i18n = LocaleData("locales")
 
 # 1. Standard Formatting
-print(i18n["en"].balance_python(amount=1234.543))   # Output: Your balance is 1234.54 dollars.
+print(i18n["en"].balance(amount=1234.543))   # Output: Your balance is 1234.54 dollars.
 print(i18n["en"].hello(name="Alice"))               # Output: Hello, Alice!
 
 # 2. Escaped Characters
@@ -71,7 +70,7 @@ print(i18n["en"].escaped_str())                     # Output: Literal braces: { 
 If you omit required variables, doti18n **does not crash**. Instead, it removes the unresolved placeholders from the string.
 
 ```python
-print(i18n["en"].balance_python())  # Output: Your balance is dollars.
+print(i18n["en"].balance())  # Output: Your balance is dollars.
 print(i18n["en"].hello)             # Output: Hello, !
 ```
 

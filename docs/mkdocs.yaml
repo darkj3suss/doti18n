@@ -15,6 +15,7 @@ nav:
     - Getting Started: getting_started.md
     - Usage:
         - Configuration: usage/configuration.md
+        - Fallback: usage/fallback.md
         - Supported Formats: usage/supported_formats.md
         - Macros: usage/macros.md
         - Formatting: usage/formatting.md
