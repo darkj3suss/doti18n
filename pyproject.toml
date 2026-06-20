@@ -38,16 +38,6 @@ dependencies = [
 yaml = [
     "PyYAML==6.0.2",
 ]
-studio = [
-    "tenjin==1.1.1",
-    "microdot==2.6.0",
-    "tomlkit==0.14.0",
-    "ruamel.yaml==0.19.1",
-]
-
-
-[tool.setuptools.package-data]
-doti18n = ["cli/commands/studio/templates/*.html", "cli/commands/studio/static/style.css", "cli/commands/studio/static/js/*.js"]
 
 [project.scripts]
 doti18n = "doti18n.cli:main"
