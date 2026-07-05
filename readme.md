@@ -28,7 +28,7 @@ It focuses on **Developer Experience (DX)** by providing a CLI tool to generate 
     *   **Non-strict:** Returns a safe wrapper and logs warnings (good for production).
 *   **Fallback:** Automatically falls back to the default locale if a key is missing.
 *   **Macros:** Define reusable snippets for common patterns (e.g., reusable ICU snippets).
-*   **Powerful CLI:** Generate stubs, lint for missing keys and run a web-based translation studio.
+*   **Powerful CLI:** Generate stubs, and run lint for missing keys.
 
 ## Installation
 
@@ -151,28 +151,6 @@ doti18n lint locales/
 # Lint against a specific source language
 doti18n lint locales/ -lang fr
 ```
-
-### Studio
-A web-based translation editor that runs locally.
-It lets you browse, edit and save translations in real time from the browser. 
-Multiple users can work simultaneously — edits are synced via WebSocket.
-
-Studio requires extra dependencies:
-```bash
-pip install doti18n[studio]
-```
-
-First, create a user:
-```bash
-doti18n studio add-user admin password
-```
-
-Then start the server:
-```bash
-doti18n studio run locales/
-```
-
-Open [http://127.0.0.1:5000](http://127.0.0.1:5000), log in, and you'll see all your locales and keys ready to edit.
 
 
 ## Project Status
