@@ -1,0 +1,109 @@
+/* hide title in sidebar */
+.md-nav[data-md-level="0"] > .md-nav__title {
+    font-size: 0;
+    line-height: 0;
+    color: transparent;
+    padding-bottom: 0;
+}
+
+.md-nav[data-md-level="0"] > .md-nav__title .md-nav__button {
+    display: block;
+    width: 100%;
+    margin: -3px;
+    padding: 20px 0 10px;
+    text-align: center;
+}
+
+.md-nav[data-md-level="0"] > .md-nav__title .md-nav__button img {
+    display: block;
+    margin: 0 auto;
+    width: auto;
+    height: 3.5rem;
+}
+
+
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(127, 127, 127, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(127, 127, 127, 0.6);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 127, 127, 0.3) transparent;
+}
+
+/* header */
+.md-header__title {
+    position: relative !important;
+    flex-grow: 1;
+    margin: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: transparent !important;
+}
+
+.md-header__topic + .md-header__topic {
+    display: none !important;
+}
+
+.md-header__topic:first-child {
+    position: fixed !important;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    height: 48px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.md-header__topic:first-child .md-ellipsis {
+    font-weight: 900 !important;
+    font-size: 1.6rem !important;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    background: #ffffff;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+@media screen and (max-width: 400px) {
+    .md-header__topic:first-child .md-ellipsis {
+        font-size: 1.2rem !important;
+    }
+}
+
+/* hide title on pages */
+h1 {
+    display: none !important;
+}
+
+.md-content__inner {
+    padding-top: 0 !important;
+}
+
+.md-typeset h1 + * {
+    margin-top: 0 !important;
+}
+
+.md-content {
+    padding-top: 0 !important;
+}
