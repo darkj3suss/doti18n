@@ -62,7 +62,6 @@ class XmlLoader(BaseLoader):
         self._root_tags: dict[str, str] = {}
         self._explicit_lists: dict[str, dict[str, str]] = {}
 
-    # ruff: noqa: C901
     def load(self, filepath: str | Path) -> dict[str, Any]:
         """Load and processes localization data from an XML file."""
         filepath = Path(filepath)
@@ -73,18 +72,6 @@ class XmlLoader(BaseLoader):
             root = tree.getroot()
             locale_code = _get_locale_code(filename)
             data = self._etree_to_dict(root, locale_code)
-            if not data:
-                return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-
-            if not isinstance(data, dict):
-                return self._throw(
-                    f"File '{filename}': expected a dictionary of translations, but got {type(data).__name__}",
-                    InvalidLocaleDocumentError,
-                )
-
-            self._root_tags[locale_code] = root.tag
-            self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
-            return {locale_code: data}
 
         except Et.ParseError as e:
             return self._throw(f"Error parsing XML file '{filename}': {e}", ParseError)
@@ -92,6 +79,19 @@ class XmlLoader(BaseLoader):
             return self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
         except Exception as e:
             return self._throw(f"Unknown error loading '{filename}': {e}", type(e))
+
+        if not data:
+            return self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
+
+        if not isinstance(data, dict):
+            return self._throw(
+                f"File '{filename}': expected a dictionary of translations, but got {type(data).__name__}",
+                InvalidLocaleDocumentError,
+            )
+
+        self._root_tags[locale_code] = root.tag
+        self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
+        return {locale_code: data}
 
     def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load and process localization data from an XML file, preserving comments."""

@@ -40,12 +40,6 @@ class TomlLoader(BaseLoader):
         try:
             with open(filepath, "rb") as f:
                 data = tomllib.load(f)
-                if not data:
-                    return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
-
-                locale_code = _get_locale_code(filename)
-                self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
-                return {locale_code: data}
 
         except FileNotFoundError:
             self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
@@ -54,7 +48,12 @@ class TomlLoader(BaseLoader):
         except Exception as e:
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
 
-        return {}
+        if not data:
+            return self._throw(f"Locale file '{filename}' is empty.", EmptyFileError)
+
+        locale_code = _get_locale_code(filename)
+        self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
+        return {locale_code: data}
 
     def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
         """Load and validate localization data from a TOML file, preserving comments."""

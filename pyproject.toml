@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "doti18n"
-version = "0.11.1"
+version = "0.12.0"
 description = "Python library for loading localizations with dot access and pluralization."
 readme = { file = "readme.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -38,16 +38,6 @@ dependencies = [
 yaml = [
     "PyYAML==6.0.2",
 ]
-studio = [
-    "tenjin==1.1.1",
-    "microdot==2.6.0",
-    "tomlkit==0.14.0",
-    "ruamel.yaml==0.19.1",
-]
-
-
-[tool.setuptools.package-data]
-doti18n = ["cli/commands/studio/templates/*.html", "cli/commands/studio/static/style.css", "cli/commands/studio/static/js/*.js"]
 
 [project.scripts]
 doti18n = "doti18n.cli:main"

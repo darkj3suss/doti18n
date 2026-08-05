@@ -28,19 +28,20 @@ class JsonLoader(BaseLoader):
         try:
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
-                if not data:
-                    self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
-                    return {}
-
-                locale_code = _get_locale_code(filename)
-                self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
-                return {locale_code: data}
         except json.decoder.JSONDecodeError as e:
             self._throw(f"Error parsing JSON file '{filename}': {e}", ParseError)
         except FileNotFoundError:
             self._throw(f"Locale file '{filename}' not found during load.", FileNotFoundError)
         except Exception as e:
             self._throw(f"Unknown error loading '{filename}': {e}", type(e))
+
+        if not data:
+            self._throw(f"Locale file '{filename}' is empty", EmptyFileError)
+            return {}
+
+        locale_code = _get_locale_code(filename)
+        self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
+        return {locale_code: data}
 
         return {}
 
