@@ -13,10 +13,13 @@ PLACEHOLDER_REGEX = re.compile(
     """,
     re.VERBOSE,
 )
+PLACEHOLDER_CLEAN = re.compile(r"\{.*?}")
 
 
 class StringWrapper(str):
     """A wrapper for a string value, which allows you to format strings by calling magic function `__call__`."""
+
+    __slots__ = ()
 
     def __call__(self, *args, **kwargs) -> str:
         """Format the string using the provided arguments and keyword arguments."""
@@ -27,6 +30,6 @@ class StringWrapper(str):
                 f"Failed to format string '{self}' with args {args} and kwargs {kwargs}. "
                 f"Error: {e.__class__.__name__}: {e}"
             )
-            temp = "".join(re.split(r"\{.*}", self))
+            temp = "".join(re.split(PLACEHOLDER_CLEAN, self))
             temp = temp.replace("{{", "{").replace("}}", "}")
             return temp
