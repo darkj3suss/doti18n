@@ -43,18 +43,6 @@ class JsonLoader(BaseLoader):
         self._logger.info(f"Loaded locale data for: '{locale_code}' from '{filename}'")
         return {locale_code: data}
 
-        return {}
-
-    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
-        """Load locale data from a JSON file."""
-        return self.load(filepath)
-
-    @staticmethod
-    def save(filepath: str | Path, data: dict[str, dict]):
-        """Save localization data to a JSON file."""
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
             raise exc_type(msg)

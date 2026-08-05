@@ -12,11 +12,6 @@ try:
 except ImportError:
     yaml = None  # type: ignore
 
-try:
-    import ruamel.yaml as ryaml
-except ImportError:
-    ryaml = None  # type: ignore
-
 
 class YamlLoader(BaseLoader):
     """Loader for YAML files."""
@@ -34,11 +29,9 @@ class YamlLoader(BaseLoader):
             raise ImportError("PyYAML package is not installed, cannot load YAML files.")
 
         filename = os.path.basename(filepath)
-        # noinspection PyUnresolvedReferences
         try:
             with open(filepath, encoding="utf-8") as f:
                 locale_code = _get_locale_code(filename)
-                # noinspection PyUnresolvedReferences
                 data = list(yaml.safe_load_all(f))
 
         except FileNotFoundError:
@@ -56,40 +49,6 @@ class YamlLoader(BaseLoader):
             data = data[0]
 
         return {locale_code: data}
-
-    def load_with_comments(self, filepath: str | Path) -> dict | list[dict]:
-        """Load a YAML file while preserving comments."""
-        global yaml
-        if not ryaml:
-            raise ImportError("ruamel.yaml package is not installed, cannot load YAML files with comments.")
-
-        if not yaml:
-            raise ImportError("PyYAML package is not installed, cannot load YAML files.")
-
-        _yaml = yaml
-        try:
-            yaml = ryaml.YAML(typ="rt")  # type: ignore
-            yaml.safe_load_all = yaml.load_all  # type: ignore
-            yaml.YAMLError = ryaml.YAMLError  # type: ignore
-            data = self.load(filepath)
-        finally:
-            yaml = _yaml
-
-        return data
-
-    @staticmethod
-    def save(filepath: str | Path, data: dict[str, dict]):
-        """Save localization data to a YAML file."""
-        global yaml
-        if not ryaml:
-            raise ImportError("ruamel.yaml package is not installed, cannot save YAML files with comments.")
-
-        if not yaml:
-            raise ImportError("PyYAML package is not installed, cannot save YAML files.")
-
-        _yaml = ryaml.YAML()
-        with open(filepath, "w", encoding="utf-8") as f:
-            _yaml.dump(data, f)
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR) -> dict | NoReturn:
         if self._strict:
