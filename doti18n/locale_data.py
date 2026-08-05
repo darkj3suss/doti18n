@@ -91,7 +91,7 @@ class LocaleData:
                 else:
                     self._raw_translations[locale_code] = locale_data
 
-    def __getitem__(self, locale_code: str) -> LocaleTranslator:
+    def __getitem__(self, locale_code: str | None) -> LocaleTranslator:
         """
         Return the LocaleTranslator object for the specified locale code.
 
@@ -103,8 +103,7 @@ class LocaleData:
         :return: The LocaleTranslator instance for the requested locale.
         """
         if not locale_code:
-            self._throw("Locale code cannot be empty.", ValueError)
-            self._logger.warning("Falling back to default locale code.")
+            self._logger.warning("Locale code cannot be empty. Falling back to default locale code.")
             locale_code = self.default_locale
 
         normalized_locale_code = locale_code.lower()
@@ -118,7 +117,6 @@ class LocaleData:
                 f"({type(current_locale_data).__name__ if current_locale_data is not None else 'NoneType'}). "
                 f"Falling back to default locale '{self.default_locale}'.",
             )
-            return self[self.default_locale]
 
         default_locale_data = self._raw_translations.get(self.default_locale)
         translator = LocaleTranslator(
@@ -232,7 +230,8 @@ class LocaleData:
             )
 
         data = self._loader.load(found_path)
-        return self._process_data(data)
+        self._process_data(data)
+        return True
 
     def _throw(self, msg: str, exc_type: type, lvl: int = logging.ERROR):
         if self._strict:
