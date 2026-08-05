@@ -49,10 +49,7 @@ class NamespaceWrapper:
             raise TypeError(f"Expected a string, got {type(name).__name__}")
 
         data = self._translator._get_value_by_path(self._path + [name])
-        if data[0] is _NOT_FOUND:
-            return False
-
-        return True
+        return data[0] is not _NOT_FOUND
 
     def __iter__(self):
         """Iterate over the keys in the namespace."""

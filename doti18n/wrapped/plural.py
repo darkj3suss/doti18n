@@ -20,11 +20,11 @@ class PluralWrapper:
 
     def __repr__(self):
         """Return a string representation of the object."""
-        return f"PluralHandlerWrapper(key='{self.path}')"
+        return f"PluralWrapper(key='{self.path}')"
 
     def __str__(self):
         """Raise an exception or log warning if called as a string."""
-        msg = "PluralHandlerWrapper is not a string. Call it as a function, not as a string."
+        msg = "PluralWrapper is not a string. Call it as a function, not as a string."
         if self.strict:
             raise TypeError(msg)
 

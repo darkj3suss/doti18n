@@ -26,7 +26,7 @@ class NoneWrapper:
     def __getattr__(self, name: str):
         """Log a warning and return None."""
         full_key_path = ".".join([self._path, name])
-        self._logger.warning(f"key/index path '{full_key_path}' not found. " "None will be returned.")
+        self._logger.warning(f"key/index path '{full_key_path}' not found. None will be returned.")
         return NoneWrapper(self._locale_code, f"{self._path}.{name}")
 
     def __bool__(self):
